@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Product
+from .models import Patient, Doctor, Appointment, Prescription
 
-admin.site.register(Product)
-
-# Register your models here.
+admin.site.register(Patient)
+admin.site.register(Doctor)
+admin.site.register(Appointment)
+admin.site.register(Prescription)

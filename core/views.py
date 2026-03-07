@@ -1,6 +1,10 @@
 from django.shortcuts import render
-from .models import Product
+from .models import Patient, Doctor
 
-def product_list(request):
-    products = Product.objects.all()
-    return render(request, "products.html", {"products": products})
+def patient_list(request):
+    patients = Patient.objects.all()
+    return render(request, "patients.html", {"patients": patients})
+
+def doctor_list(request):
+    doctors = Doctor.objects.all()
+    return render(request, "doctors.html", {"doctors": doctors})

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patients</title>
+</head>
+<body>
+
+<h1>My Patients</h1>
+
+{% for patient in patients %}
+    <h2>{{ patient.name }}</h2>
+    <p>Age: {{ patient.age }}</p>
+    <p>Gender: {{ patient.gender }}</p>
+    <p>Phone: {{ patient.phone }}</p>
+    <hr>
+{% endfor %}
+
+</body>
+</html>
