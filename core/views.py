@@ -1,149 +1,131 @@
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from django.shortcuts import render
-from .models import Patient, Doctor, Appointment, Prescription
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login, logout
+import json
+
+from .models import Patient, Doctor, Profile
 
 
 # -------------------------
-# HTML Pages
+# REGISTER (Doctor / Patient)
 # -------------------------
+def register(request):
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        role = request.POST['role']
 
-def register_page(request):
-    return render(request, "register_patient.html")
+        # Create user
+        user = User.objects.create_user(username=username, password=password)
 
+        # Create profile
+        Profile.objects.create(user=user, role=role)
 
-def appointment_page(request):
-    return render(request, "book_appointment.html")
+        # Create role-specific data
+        if role == "doctor":
+            Doctor.objects.create(
+                user=user,
+                doctor_id=f"D{user.id}",
+                name=username,
+                specialization="General",
+                phone="0000000000"
+            )
+
+        elif role == "patient":
+            Patient.objects.create(
+                user=user,
+                patient_id=f"P{user.id}",
+                name=username,
+                age=20,
+                gender="Not set",
+                phone="0000000000",
+                address="Not set",
+                blood_group="NA",
+                allergies="None",
+                emergency_contact="0000000000"
+            )
+
+        return redirect('login')
+
+    return render(request, 'register.html')
 
 
 # -------------------------
-# Register Patient API
+# LOGIN
 # -------------------------
+def login_view(request):
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
 
-@require_POST
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+
+            role = user.profile.role
+
+            if role == "admin":
+                return redirect('admin_dashboard')
+            elif role == "doctor":
+                return redirect('doctor_dashboard')
+            else:
+                return redirect('patient_dashboard')
+
+        else:
+            return render(request, 'login.html', {'error': 'Invalid credentials'})
+
+    return render(request, 'login.html')
+
+
+# -------------------------
+# LOGOUT
+# -------------------------
+def logout_view(request):
+    logout(request)
+    return redirect('login')
+
+
+# -------------------------
+# DASHBOARDS
+# -------------------------
+def admin_dashboard(request):
+    return render(request, 'admin_dashboard.html')
+
+
+def doctor_dashboard(request):
+    doctor = Doctor.objects.get(user=request.user)
+    return render(request, 'doctor_dashboard.html', {'doctor': doctor})
+
+
+def patient_dashboard(request):
+    patient = Patient.objects.get(user=request.user)
+    return render(request, 'patient_dashboard.html', {'patient': patient})
+
+
+# -------------------------
+# PATIENT REGISTRATION API (QR)
+# -------------------------
+@csrf_exempt
 def register_patient(request):
-    name = request.POST.get("name")
-    age = request.POST.get("age")
-    gender = request.POST.get("gender")
-    phone = request.POST.get("phone")
+    if request.method == "POST":
+        data = json.loads(request.body)
 
-    # Validation
-    if not all([name, age, gender, phone]):
-        return JsonResponse({"error": "All fields are required"}, status=400)
+        patient = Patient.objects.create(
+            patient_id=data.get('patient_id'),
+            name=data.get('name'),
+            age=data.get('age'),
+            gender=data.get('gender'),
+            phone=data.get('phone'),
+            address=data.get('address'),
+            blood_group=data.get('blood_group'),
+            allergies=data.get('allergies'),
+            emergency_contact=data.get('emergency_contact')
+        )
 
-    try:
-        age = int(age)
-    except ValueError:
-        return JsonResponse({"error": "Age must be a number"}, status=400)
-
-    # Create Patient
-    patient = Patient.objects.create(
-        name=name,
-        age=age,
-        gender=gender,
-        phone=phone
-    )
-
-    return JsonResponse({
-        "message": "Patient registered successfully",
-        "patient_id": patient.id
-    }, status=201)
-
-
-# -------------------------
-# Book Appointment API
-# -------------------------
-
-@require_POST
-def book_appointment(request):
-    patient_id = request.POST.get("patient_id")
-    doctor_id = request.POST.get("doctor_id")
-    date = request.POST.get("date")
-    time = request.POST.get("time")
-
-    # Validation
-    if not all([patient_id, doctor_id, date, time]):
-        return JsonResponse({"error": "All fields are required"}, status=400)
-
-    try:
-        patient = Patient.objects.get(id=patient_id)
-    except Patient.DoesNotExist:
-        return JsonResponse({"error": "Patient not found"}, status=404)
-
-    try:
-        doctor = Doctor.objects.get(id=doctor_id)
-    except Doctor.DoesNotExist:
-        return JsonResponse({"error": "Doctor not found"}, status=404)
-
-    # Create Appointment
-    appointment = Appointment.objects.create(
-        patient=patient,
-        doctor=doctor,
-        date=date,
-        time=time,
-        status="pending"
-    )
-
-    return JsonResponse({
-        "message": "Appointment booked successfully",
-        "appointment_id": appointment.id
-    }, status=201)
-
-
-# -------------------------
-# Add Prescription API
-# -------------------------
-
-@require_POST
-def add_prescription(request):
-    appointment_id = request.POST.get("appointment_id")
-    medicines = request.POST.get("medicines")
-    notes = request.POST.get("notes")
-
-    # Validation
-    if not appointment_id or not medicines:
-        return JsonResponse({"error": "Required fields missing"}, status=400)
-
-    try:
-        appointment = Appointment.objects.get(id=appointment_id)
-    except Appointment.DoesNotExist:
-        return JsonResponse({"error": "Appointment not found"}, status=404)
-
-    # Create Prescription
-    prescription = Prescription.objects.create(
-        appointment=appointment,
-        medicines=medicines,
-        notes=notes
-    )
-
-    return JsonResponse({
-        "message": "Prescription added successfully",
-        "prescription_id": prescription.id
-    }, status=201)
-
-
-# -------------------------
-# Optional: Get All Patients
-# -------------------------
-
-def get_patients(request):
-    patients = list(Patient.objects.values())
-    return JsonResponse(patients, safe=False)
-
-
-# -------------------------
-# Optional: Get All Doctors
-# -------------------------
-
-def get_doctors(request):
-    doctors = list(Doctor.objects.values())
-    return JsonResponse(doctors, safe=False)
-
-
-# -------------------------
-# Optional: Get Appointments
-# -------------------------
-
-def get_appointments(request):
-    appointments = list(Appointment.objects.values())
-    return JsonResponse(appointments, safe=False)
+        return JsonResponse({
+            "message": "Patient Registered Successfully",
+            "qr_code": patient.qr_code.url
+        })

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Patient Registration</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #f4f4f4;
+            text-align: center;
+        }
+
+        .container {
+            width: 350px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px gray;
+        }
+
+        input {
+            width: 90%;
+            padding: 8px;
+            margin: 8px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: blue;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        img {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Patient Registration</h2>
+
+    <input type="text" id="patient_id" placeholder="Patient ID"><br>
+    <input type="text" id="name" placeholder="Name"><br>
+    <input type="number" id="age" placeholder="Age"><br>
+    <input type="text" id="gender" placeholder="Gender"><br>
+    <input type="text" id="phone" placeholder="Phone"><br>
+    <input type="text" id="address" placeholder="Address"><br>
+    <input type="text" id="blood_group" placeholder="Blood Group"><br>
+    <input type="text" id="allergies" placeholder="Allergies"><br>
+    <input type="text" id="emergency_contact" placeholder="Emergency Contact"><br>
+
+    <button onclick="registerPatient()">Register</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+function registerPatient() {
+    const data = {
+        patient_id: document.getElementById('patient_id').value,
+        name: document.getElementById('name').value,
+        age: document.getElementById('age').value,
+        gender: document.getElementById('gender').value,
+        phone: document.getElementById('phone').value,
+        address: document.getElementById('address').value,
+        blood_group: document.getElementById('blood_group').value,
+        allergies: document.getElementById('allergies').value,
+        emergency_contact: document.getElementById('emergency_contact').value
+    };
+
+    fetch('/register-patient-api/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('result').innerHTML = `
+            <p style="color:green;">${data.message}</p>
+            <img src="${data.qr_code}" width="150">
+        `;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+</script>
+
+</body>
+</html>
