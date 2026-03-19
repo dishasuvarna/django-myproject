@@ -1,6 +1,6 @@
 # Django Products Project 
 
-This is my beginner Django backend project.
+This is my beginner Django project.
 
 Features:
 - Product model
