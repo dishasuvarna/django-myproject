@@ -8,16 +8,20 @@
 
 <h2>Patient Registration</h2>
 
-<form action="/api/add-prescription/" method="POST">
+<h2>Add Prescription</h2>
 
-<input type="number" name="appointment_id" placeholder="Appointment ID"><br><br>
+<form method="post">
+    {% csrf_token %}
 
-<input type="text" name="medicines" placeholder="Medicines"><br><br>
+    Patient ID: <input type="text" name="patient_id"><br><br>
 
-<input type="text" name="notes" placeholder="Notes"><br><br>
+    Medicines:<br>
+    <textarea name="medicines"></textarea><br><br>
 
-<button type="submit">Add Prescription</button>
+    Notes:<br>
+    <textarea name="notes"></textarea><br><br>
 
+    <button type="submit">Save</button>
 </form>
 
 </body>

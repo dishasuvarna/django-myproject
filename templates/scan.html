@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scan QR</title>
+</head>
+
+<body>
+
+<h2>Scan Patient QR</h2>
+
+<div id="reader" style="width:300px;"></div>
+
+<div id="result"></div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+function onScanSuccess(qrCodeMessage) {
+
+    let id = qrCodeMessage.split("\n")[0].split(": ")[1];
+
+    fetch(`/get-patient/${id}/`)
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("result").innerHTML = `
+            <h3>Patient Details</h3>
+            Name: ${data.name}<br>
+            Age: ${data.age}<br>
+            Blood Group: ${data.blood_group}<br>
+            Allergies: ${data.allergies}
+        `;
+    });
+}
+
+let html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader", { fps: 10, qrbox: 250 }
+);
+
+html5QrcodeScanner.render(onScanSuccess);
+</script>
+
+</body>
+</html>

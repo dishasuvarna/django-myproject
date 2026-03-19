@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Register Patient</title>
+</head>
+
+<body>
+
+<h2>Your Prescriptions</h2>
+
+{% for p in prescriptions %}
+    <p><b>Doctor:</b> {{ p.doctor.name }}</p>
+    <p><b>Medicines:</b> {{ p.medicines }}</p>
+    <p><b>Notes:</b> {{ p.notes }}</p>
+    <hr>
+{% endfor %}
+    
+</body>
+</html>
