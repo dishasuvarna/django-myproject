@@ -1,19 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Register Patient</title>
-</head>
-
-<body>
-
-<h2>Your Prescriptions</h2>
+<h2>Prescriptions for {{ patient.name }}</h2>
 
 {% for p in prescriptions %}
+    <hr>
     <p><b>Doctor:</b> {{ p.doctor.name }}</p>
     <p><b>Medicines:</b> {{ p.medicines }}</p>
     <p><b>Notes:</b> {{ p.notes }}</p>
-    <hr>
+    <p><b>Date:</b> {{ p.created_at }}</p>
+{% empty %}
+    <p>No prescriptions found</p>
 {% endfor %}
-    
-</body>
-</html>
+
+<a href="/doctor-dashboard/">⬅ Back</a>

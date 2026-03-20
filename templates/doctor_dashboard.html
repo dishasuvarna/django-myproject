@@ -1,2 +1,62 @@
-<h2>Doctor Dashboard</h2>
-<a href="/logout/">Logout</a>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Doctor Dashboard</title>
+</head>
+
+<body>
+
+<h2>👨‍⚕️ Doctor Dashboard</h2>
+
+<hr>
+
+<!-- 🔍 SEARCH SECTION -->
+<h3>Search Patient</h3>
+<form method="POST">
+{% csrf_token %}
+<input name="search" placeholder="Enter ID / Phone / Aadhaar">
+<button type="submit">Search</button>
+</form>
+
+<hr>
+
+<!-- 📷 QUICK ACTIONS -->
+<h3>Quick Actions</h3>
+
+<a href="/scan/">
+    <button>📷 Scan QR</button>
+</a>
+
+<a href="/logout/">
+    <button>🚪 Logout</button>
+</a>
+
+<hr>
+
+<!-- 🧾 PATIENT DETAILS -->
+{% if patient %}
+
+<h3>Patient Details</h3>
+
+<p><b>Name:</b> {{ patient.name }}</p>
+<p><b>Blood Group:</b> {{ patient.blood_group }}</p>
+<p><b>Phone:</b> {{ patient.phone }}</p>
+<p><b>Allergies:</b> {{ patient.allergies }}</p>
+
+<hr>
+
+<!-- 💊 ACTIONS FOR THIS PATIENT -->
+<h3>Actions</h3>
+
+<a href="/add-prescription/{{ patient.patient_id }}/">
+    <button>💊 Add Prescription</button>
+</a>
+
+<a href="/view-prescriptions/{{ patient.patient_id }}/">
+    <button>📄 View Prescriptions</button>
+</a>
+
+{% endif %}
+
+</body>
+</html>

@@ -10,18 +10,11 @@
 
 <h2>Add Prescription</h2>
 
-<form method="post">
-    {% csrf_token %}
-
-    Patient ID: <input type="text" name="patient_id"><br><br>
-
-    Medicines:<br>
-    <textarea name="medicines"></textarea><br><br>
-
-    Notes:<br>
-    <textarea name="notes"></textarea><br><br>
-
-    <button type="submit">Save</button>
+<form method="POST">
+{% csrf_token %}
+<textarea name="medicines"></textarea><br>
+<textarea name="notes"></textarea><br>
+<button type="submit">Save</button>
 </form>
 
 </body>

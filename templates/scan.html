@@ -17,23 +17,42 @@
 <script>
 function onScanSuccess(qrCodeMessage) {
 
-    let id = qrCodeMessage.split("\n")[0].split(": ")[1];
+    console.log("QR DATA:", qrCodeMessage);
 
-    fetch(`/get-patient/${id}/`)
-    .then(res => res.json())
-    .then(data => {
+    try {
+        // 🔥 Parse JSON QR
+        let data = JSON.parse(qrCodeMessage);
+
+        // ✅ Show OFFLINE data
         document.getElementById("result").innerHTML = `
-            <h3>Patient Details</h3>
+            <h3>Basic Info (Offline)</h3>
             Name: ${data.name}<br>
-            Age: ${data.age}<br>
             Blood Group: ${data.blood_group}<br>
-            Allergies: ${data.allergies}
+            Allergies: ${data.allergies}<br>
+            Emergency: ${data.emergency_contact}
+            <hr>
         `;
-    });
+
+        // ✅ Fetch FULL data from backend
+        fetch(`/get-patient/${data.id}/`)
+        .then(res => res.json())
+        .then(full => {
+            document.getElementById("result").innerHTML += `
+                <h3>Full Details (Online)</h3>
+                Phone: ${full.phone}<br>
+            `;
+        });
+
+    } catch (error) {
+        // ❌ If QR is old format
+        document.getElementById("result").innerHTML =
+            "<p style='color:red;'>Invalid QR format</p>";
+    }
 }
 
 let html5QrcodeScanner = new Html5QrcodeScanner(
-    "reader", { fps: 10, qrbox: 250 }
+    "reader",
+    { fps: 10, qrbox: 250 }
 );
 
 html5QrcodeScanner.render(onScanSuccess);

@@ -1,53 +1,38 @@
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login, logout
-import json
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+import re
 
 from .models import Patient, Doctor, Profile, Prescription
 
 
+# PASSWORD VALIDATION
+def is_strong_password(password):
+    return len(password) >= 6 and re.search(r"[a-z]", password) and re.search(r"[0-9]", password)
+
+
 # -------------------------
-# REGISTER (Doctor / Patient)
+# PATIENT REGISTER
 # -------------------------
 def register(request):
     if request.method == "POST":
-        username = request.POST.get('username')
+        username = request.POST.get('username').strip()
         password = request.POST.get('password')
-        role = request.POST.get('role')
+        phone = request.POST.get('phone')
+
+        if not phone.isdigit() or len(phone) != 10:
+            return render(request, 'register.html', {'error': 'Invalid phone'})
+
+        if not is_strong_password(password):
+            return render(request, 'register.html', {'error': 'Weak password'})
 
         if User.objects.filter(username=username).exists():
-            return render(request, 'register.html', {'error': 'User already exists'})
+            return render(request, 'register.html', {'error': 'User exists'})
 
         user = User.objects.create_user(username=username, password=password)
-
-        # Create profile safely
-        profile = Profile.objects.create(user=user, role=role)
-
-        if role == "doctor":
-            Doctor.objects.create(
-                user=user,
-                doctor_id=f"D{user.id}",
-                name=username,
-                specialization="General",
-                phone="0000000000"
-            )
-
-        elif role == "patient":
-            Patient.objects.create(
-                user=user,
-                patient_id=f"P{user.id}",
-                name=username,
-                age=20,
-                gender="Not set",
-                phone="0000000000",
-                address="Not set",
-                blood_group="NA",
-                allergies="None",
-                emergency_contact="0000000000"
-            )
+        Profile.objects.create(user=user, role='patient')
 
         return redirect('login')
 
@@ -59,167 +44,192 @@ def register(request):
 # -------------------------
 def login_view(request):
     if request.method == "POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+        user = authenticate(
+            request,
+            username=request.POST.get('username'),
+            password=request.POST.get('password')
+        )
 
-        user = authenticate(request, username=username, password=password)
+        if user is None:
+            return render(request, 'login.html', {'error': 'Invalid login'})
 
-        if user is not None:
-            login(request, user)
+        login(request, user)
+        profile = Profile.objects.get(user=user)
 
-            # Safe profile access
-            profile = Profile.objects.filter(user=user).first()
-
-            if not profile:
-                return redirect('login')
-
-            role = profile.role
-
-            if role == "admin":
-                return redirect('admin_dashboard')
-            elif role == "doctor":
-                return redirect('doctor_dashboard')
-            else:
-                return redirect('patient_dashboard')
-
-        else:
-            return render(request, 'login.html', {'error': 'Invalid credentials'})
+        if profile.role == 'doctor':
+            return redirect('doctor_dashboard')
+        return redirect('patient_form')
 
     return render(request, 'login.html')
 
 
 # -------------------------
-# LOGOUT
-# -------------------------
-def logout_view(request):
-    logout(request)
-    return redirect('login')
-
-
-# -------------------------
-# DASHBOARDS
+# PATIENT FORM → QR ONLY
 # -------------------------
 @login_required
-def admin_dashboard(request):
-    return render(request, 'admin_dashboard.html')
+def patient_form(request):
+
+    patient = Patient.objects.filter(user=request.user).first()
+
+    if patient:
+        return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
+
+    if request.method == "POST":
+
+        aadhaar = request.POST.get('aadhaar')
+        phone = request.POST.get('phone')
+
+        if not aadhaar or not aadhaar.isdigit() or len(aadhaar) != 4:
+            return render(request, 'patient_form.html', {'error': 'Invalid Aadhaar'})
+
+        if not phone or not phone.isdigit() or len(phone) != 10:
+            return render(request, 'patient_form.html', {'error': 'Invalid phone'})
+
+        patient = Patient.objects.create(
+            user=request.user,
+            patient_id=f"P{request.user.id}",
+            aadhaar_last4=aadhaar,
+            name=request.user.username,
+            age=request.POST.get('age') or 0,
+            gender=request.POST.get('gender') or "N/A",
+            phone=phone,
+            blood_group=request.POST.get('blood_group') or "",
+            allergies=request.POST.get('allergies') or "",
+            emergency_contact=request.POST.get('emergency_contact') or ""
+        )
+
+        return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
+
+    return render(request, 'patient_form.html')
 
 
+@login_required
+def scan_qr(request):
+    return render(request, 'scan.html')
+
+
+# -------------------------
+# DOCTOR LOGIN (STRICT)
+# -------------------------
+def doctor_login(request):
+    if request.method == "POST":
+
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        print("LOGIN TRY:", username, password)  # DEBUG
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is None:
+            print("AUTH FAILED")
+            return render(request, 'doctor_login.html', {'error': 'Invalid login'})
+
+        try:
+            profile = Profile.objects.get(user=user)
+        except Profile.DoesNotExist:
+            return render(request, 'doctor_login.html', {'error': 'No profile found'})
+
+        if profile.role != 'doctor':
+            return render(request, 'doctor_login.html', {'error': 'Not a doctor'})
+
+        login(request, user)
+
+        print("LOGIN SUCCESS")
+
+        return redirect('doctor_dashboard')
+
+    return render(request, 'doctor_login.html')
+
+
+# -------------------------
+# DOCTOR DASHBOARD
+# -------------------------
 @login_required
 def doctor_dashboard(request):
-    doctor = Doctor.objects.filter(user=request.user).first()
-    if not doctor:
+
+    profile = Profile.objects.get(user=request.user)
+
+    # 🔒 STRICT CHECK
+    if profile.role != 'doctor':
         return redirect('login')
 
-    return render(request, 'doctor_dashboard.html', {'doctor': doctor})
+    patient = None
 
-
-@login_required
-def patient_dashboard(request):
-    patient = Patient.objects.filter(user=request.user).first()
-    if not patient:
-        return redirect('login')
-
-    return render(request, 'patient_dashboard.html', {'patient': patient})
-
-
-# -------------------------
-# PATIENT REGISTRATION API (QR)
-# -------------------------
-@csrf_exempt
-def register_patient(request):
     if request.method == "POST":
-        try:
-            data = json.loads(request.body)
+        search = request.POST.get('search')
 
-            patient = Patient.objects.create(
-                patient_id=data.get('patient_id'),
-                name=data.get('name'),
-                age=data.get('age'),
-                gender=data.get('gender'),
-                phone=data.get('phone'),
-                address=data.get('address'),
-                blood_group=data.get('blood_group'),
-                allergies=data.get('allergies'),
-                emergency_contact=data.get('emergency_contact')
-            )
+        patient = Patient.objects.filter(
+            patient_id=search
+        ).first() or Patient.objects.filter(
+            phone=search
+        ).first() or Patient.objects.filter(
+            aadhaar_last4=search
+        ).first()
 
-            return JsonResponse({
-                "message": "Patient Registered Successfully",
-                "qr_code": patient.qr_code.url
-            })
-
-        except Exception as e:
-            return JsonResponse({"error": str(e)})
-
-    return JsonResponse({"error": "Only POST method allowed"})
-
-
-# -------------------------
-# QR SCAN → GET PATIENT
-# -------------------------
-def get_patient(request, patient_id):
-    patient = Patient.objects.filter(patient_id=patient_id).first()
-
-    if not patient:
-        return JsonResponse({"error": "Patient not found"})
-
-    return JsonResponse({
-        "name": patient.name,
-        "age": patient.age,
-        "gender": patient.gender,
-        "phone": patient.phone,
-        "blood_group": patient.blood_group,
-        "allergies": patient.allergies,
-        "address": patient.address
+    return render(request, 'doctor_dashboard.html', {
+        'patient': patient
     })
-
-
-# -------------------------
-# SCAN PAGE
-# -------------------------
-@login_required
-def scan_page(request):
-    return render(request, 'scan.html')
 
 
 # -------------------------
 # ADD PRESCRIPTION
 # -------------------------
 @login_required
-def add_prescription(request):
+def add_prescription(request, patient_id):
+
+    profile = Profile.objects.get(user=request.user)
+    if profile.role != 'doctor':
+        return redirect('login')
+
+    try:
+        doctor = Doctor.objects.get(user=request.user)
+    except Doctor.DoesNotExist:
+        return HttpResponse("Doctor profile not created")
+
+    patient = Patient.objects.get(patient_id=patient_id)
+
     if request.method == "POST":
-        patient_id = request.POST.get('patient_id')
-        medicines = request.POST.get('medicines')
-        notes = request.POST.get('notes')
-
-        patient = Patient.objects.filter(patient_id=patient_id).first()
-        doctor = Doctor.objects.filter(user=request.user).first()
-
-        if not patient or not doctor:
-            return render(request, 'add_prescription.html', {'error': 'Invalid data'})
-
         Prescription.objects.create(
             patient=patient,
             doctor=doctor,
-            medicines=medicines,
-            notes=notes
+            medicines=request.POST.get('medicines'),
+            notes=request.POST.get('notes')
         )
-
         return redirect('doctor_dashboard')
 
-    return render(request, 'add_prescription.html')
+    return render(request, 'add_prescription.html', {'patient': patient})
+
+#View prescriptions for a patient
 
 
-# -------------------------
-# VIEW PRESCRIPTIONS
-# -------------------------
 @login_required
-def view_prescriptions(request):
-    patient = Patient.objects.filter(user=request.user).first()
+def view_prescriptions(request, patient_id):
 
-    if not patient:
+    profile = Profile.objects.get(user=request.user)
+    if profile.role != 'doctor':
         return redirect('login')
 
+    patient = Patient.objects.get(patient_id=patient_id)
     prescriptions = Prescription.objects.filter(patient=patient)
 
-    return render(request, 'view_prescriptions.html', {'prescriptions': prescriptions})
+    return render(request, 'view_prescriptions.html', {
+        'patient': patient,
+        'prescriptions': prescriptions
+    })
+
+
+# -------------------------
+# QR FETCH (API)
+# -------------------------
+def get_patient(request, patient_id):
+
+    patient = Patient.objects.get(patient_id=patient_id)
+
+    return JsonResponse({
+        "name": patient.name,
+        "blood_group": patient.blood_group,
+        "phone": patient.phone,
+        "allergies": patient.allergies,
+        "emergency_contact": patient.emergency_contact
+    })
