@@ -1,12 +1,74 @@
-<h2>Doctor Login</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Doctor Login</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f4f6f8;
+        }
+
+        .container {
+            width: 300px;
+            margin: 80px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        input {
+            width: 90%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            width: 95%;
+            padding: 10px;
+            background-color: #2c7be5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1a5edb;
+        }
+
+        .error {
+            color: red;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>👨‍⚕️ Doctor Login</h2>
 
 <form method="POST">
 {% csrf_token %}
 
-<input name="username" placeholder="Doctor Username"><br>
-<input name="password" type="password"><br>
+<input name="username" placeholder="Enter Username" required>
+<input name="password" type="password" placeholder="Enter Password" required>
 
 <button type="submit">Login</button>
+
 </form>
 
-{{ error }}
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+
+</div>
+
+</body>
+</html>
