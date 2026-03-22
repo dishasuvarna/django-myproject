@@ -6,14 +6,12 @@
 
 <body>
 
-<h2>Patient Registration</h2>
-
 <h2>Add Prescription</h2>
 
 <form method="POST">
 {% csrf_token %}
-<textarea name="medicines"></textarea><br>
-<textarea name="notes"></textarea><br>
+<textarea name="medicines" placeholder="Enter medicines"></textarea><br>
+<textarea name="notes" placeholder="Enter notes"></textarea><br>
 <button type="submit">Save</button>
 </form>
 

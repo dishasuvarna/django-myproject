@@ -200,7 +200,7 @@ def add_prescription(request, patient_id):
 
     return render(request, 'add_prescription.html', {'patient': patient})
 
-#View prescriptions for a patient
+# doctor View prescriptions
 
 
 @login_required
@@ -232,4 +232,61 @@ def get_patient(request, patient_id):
         "phone": patient.phone,
         "allergies": patient.allergies,
         "emergency_contact": patient.emergency_contact
+    })
+
+#Doctor logout
+
+from django.contrib.auth import logout
+
+def logout_view(request):
+    role = None
+    if request.user.is_authenticated:
+        try:
+            role = request.user.profile.role
+        except:
+            pass
+
+    logout(request)
+
+    if role == 'doctor':
+        return redirect('doctor_login')
+    return redirect('login')
+
+#edit patient
+
+@login_required
+def edit_patient(request, patient_id):
+
+    profile = Profile.objects.get(user=request.user)
+    if profile.role != 'doctor':
+        return redirect('login')
+
+    patient = Patient.objects.get(patient_id=patient_id)
+
+    if request.method == "POST":
+
+        patient.is_bp = 'bp' in request.POST
+        patient.is_diabetes = 'diabetes' in request.POST
+        patient.is_hiv = 'hiv' in request.POST
+        patient.is_hepatitis = 'hepatitis' in request.POST
+        patient.is_pregnant = 'pregnant' in request.POST
+        patient.is_trauma = 'trauma' in request.POST
+
+        patient.save()
+
+        return redirect('doctor_dashboard')
+
+    return render(request, 'edit_patient.html', {'patient': patient})
+
+# patient can view their prescriptions
+
+@login_required
+def patient_prescriptions(request):
+
+    patient = Patient.objects.get(user=request.user)
+
+    prescriptions = Prescription.objects.filter(patient=patient)
+
+    return render(request, 'patient_prescriptions.html', {
+        'prescriptions': prescriptions
     })

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Prescriptions</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background-color: #f4f6f8;
+        }
+
+        .container {
+            width: 500px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        .empty {
+            text-align: center;
+            color: gray;
+        }
+
+        button {
+            padding: 8px 12px;
+            background-color: #2c7be5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1a5edb;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>📄 My Prescriptions</h2>
+
+{% if prescriptions %}
+
+    {% for p in prescriptions %}
+        <div class="card">
+
+            <p><b>Doctor:</b> {{ p.doctor.name }}</p>
+            <p><b>Specialization:</b> {{ p.doctor.specialization }}</p>
+            <p><b>Medicines:</b> {{ p.medicines }}</p>
+            <p><b>Notes:</b> {{ p.notes }}</p>
+
+            <p><b>Date:</b> {{ p.created_at|date:"Y-m-d" }}</p>
+            <p><b>Time:</b> {{ p.created_at|time:"H:i:s" }}</p>
+
+        </div>
+    {% endfor %}
+
+{% else %}
+
+    <p class="empty">No prescriptions available</p>
+
+{% endif %}
+
+<br>
+
+<a href="/patient-form/">
+    <button>⬅ Back</button>
+</a>
+
+</div>
+
+</body>
+</html>

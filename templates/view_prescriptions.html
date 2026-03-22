@@ -3,6 +3,7 @@
 {% for p in prescriptions %}
     <hr>
     <p><b>Doctor:</b> {{ p.doctor.name }}</p>
+    <p><b>Specialization:</b> {{ p.doctor.specialization }}</p>
     <p><b>Medicines:</b> {{ p.medicines }}</p>
     <p><b>Notes:</b> {{ p.notes }}</p>
     <p><b>Date:</b> {{ p.created_at }}</p>

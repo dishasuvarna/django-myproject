@@ -6,7 +6,7 @@ from django.conf.urls.static import static
 
 
 def home(request):
-    return HttpResponse("Hospital Management System Running ✅")
+    return HttpResponse("Smart Emergency QR System Running ✅")
 
 
 urlpatterns = [

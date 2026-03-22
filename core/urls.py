@@ -8,6 +8,9 @@ urlpatterns = [
     # 👤 Patient
     path('patient-form/', patient_form, name='patient_form'),
 
+    # 👤 Patient view (THIS IS YOUR FIX)
+    path('my-prescriptions/', patient_prescriptions, name='patient_prescriptions'),
+
     # 👨‍⚕️ Doctor
     path('doctor-login/', doctor_login, name='doctor_login'),
     path('doctor-dashboard/', doctor_dashboard, name='doctor_dashboard'),
@@ -22,4 +25,12 @@ urlpatterns = [
 
     # 📡 API
     path('get-patient/<str:patient_id>/', get_patient, name='get_patient'),
+
+    # 🚪 Logout
+    path('doctor-login/', doctor_login, name='doctor_login'),
+    path('logout/', logout_view, name='logout'),
+
+    # ✏️ Edit Patient
+    path('edit-patient/<str:patient_id>/', edit_patient, name='edit_patient'),
+
 ]
