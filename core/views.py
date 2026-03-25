@@ -9,8 +9,31 @@ from .models import Patient, Doctor, Profile, Prescription
 
 
 # PASSWORD VALIDATION
+# def is_strong_password(password):
+#     return len(password) >= 6 and re.search(r"[a-z]", password) and re.search(r"[0-9]", password)
+
+
 def is_strong_password(password):
-    return len(password) >= 6 and re.search(r"[a-z]", password) and re.search(r"[0-9]", password)
+    # Must be at least 8 characters
+    if len(password) < 8:
+        return False
+    # No spaces allowed
+    if " " in password:
+        return False
+    # Must contain at least one lowercase letter
+    if not re.search(r"[a-z]", password):
+        return False
+    # Must contain at least one uppercase letter
+    if not re.search(r"[A-Z]", password):
+        return False
+    # Must contain at least one digit
+    if not re.search(r"[0-9]", password):
+        return False
+    # Must contain at least one special character
+    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        return False
+    
+    return True
 
 
 # -------------------------
