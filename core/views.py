@@ -125,6 +125,40 @@ def login_view(request):
 #     return render(request, 'scan.html')
 
 
+# @login_required
+# def patient_form(request):
+
+#     patient = Patient.objects.filter(user=request.user).first()
+
+#     # If patient already exists → show QR
+#     if patient:
+#         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
+
+#     # Handle form submission
+#     if request.method == "POST":
+#         phone = request.POST.get('phone')
+
+#         # Validate phone
+#         if not phone or not phone.isdigit() or len(phone) != 10:
+#             return render(request, 'patient_form.html', {'error': 'Invalid phone'})
+
+#         # Create patient
+#         patient = Patient.objects.create(
+#             user=request.user,
+#             patient_id=f"P{request.user.id}",
+#             name=request.user.username,
+#             age=request.POST.get('age') or 0,
+#             gender=request.POST.get('gender') or "N/A",
+#             phone=phone,
+#             blood_group=request.POST.get('blood_group') or "",
+#             allergies=request.POST.get('allergies') or "",
+#             emergency_contact=request.POST.get('emergency_contact') or ""
+#         )
+
+
+
+
+
 @login_required
 def patient_form(request):
 
@@ -137,10 +171,17 @@ def patient_form(request):
     # Handle form submission
     if request.method == "POST":
         phone = request.POST.get('phone')
+        emergency_contact = request.POST.get('emergency_contact')
 
         # Validate phone
         if not phone or not phone.isdigit() or len(phone) != 10:
             return render(request, 'patient_form.html', {'error': 'Invalid phone'})
+
+        # ✅ NEW VALIDATION: phone and emergency contact should not be same
+        if phone == emergency_contact:
+            return render(request, 'patient_form.html', {
+                'error': 'Phone number and emergency contact cannot be the same'
+            })
 
         # Create patient
         patient = Patient.objects.create(
@@ -152,7 +193,7 @@ def patient_form(request):
             phone=phone,
             blood_group=request.POST.get('blood_group') or "",
             allergies=request.POST.get('allergies') or "",
-            emergency_contact=request.POST.get('emergency_contact') or ""
+            emergency_contact=emergency_contact or ""
         )
 
         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
