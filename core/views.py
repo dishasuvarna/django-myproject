@@ -66,29 +66,63 @@ def login_view(request):
 # -------------------------
 # PATIENT FORM → QR ONLY
 # -------------------------
+# @login_required
+# def patient_form(request):
+
+#     patient = Patient.objects.filter(user=request.user).first()
+
+#     if patient:
+#         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
+
+#     if request.method == "POST":
+#        phone = request.POST.get('phone')
+
+#     if not phone or not phone.isdigit() or len(phone) != 10:
+#             return render(request, 'patient_form.html', {'error': 'Invalid phone'})
+
+#     patient = Patient.objects.create(
+#             user=request.user,
+#         patient_id=f"P{request.user.id}",
+#             name=request.user.username,
+#             age=request.POST.get('age') or 0,
+#             gender=request.POST.get('gender') or "N/A",
+#             phone=phone,
+#             blood_group=request.POST.get('blood_group') or "",
+#             allergies=request.POST.get('allergies') or "",
+#             emergency_contact=request.POST.get('emergency_contact') or ""
+#         )
+
+#     return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
+
+#     return render(request, 'patient_form.html')
+
+
+# @login_required
+# def scan_qr(request):
+#     return render(request, 'scan.html')
+
+
 @login_required
 def patient_form(request):
 
     patient = Patient.objects.filter(user=request.user).first()
 
+    # If patient already exists → show QR
     if patient:
         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
 
+    # Handle form submission
     if request.method == "POST":
-
-        aadhaar = request.POST.get('aadhaar')
         phone = request.POST.get('phone')
 
-        if not aadhaar or not aadhaar.isdigit() or len(aadhaar) != 4:
-            return render(request, 'patient_form.html', {'error': 'Invalid Aadhaar'})
-
+        # Validate phone
         if not phone or not phone.isdigit() or len(phone) != 10:
             return render(request, 'patient_form.html', {'error': 'Invalid phone'})
 
+        # Create patient
         patient = Patient.objects.create(
             user=request.user,
             patient_id=f"P{request.user.id}",
-            aadhaar_last4=aadhaar,
             name=request.user.username,
             age=request.POST.get('age') or 0,
             gender=request.POST.get('gender') or "N/A",
@@ -100,12 +134,22 @@ def patient_form(request):
 
         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
 
+    # GET request → show form
     return render(request, 'patient_form.html')
 
 
 @login_required
 def scan_qr(request):
     return render(request, 'scan.html')
+
+
+
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
 
 # -------------------------
@@ -162,9 +206,7 @@ def doctor_dashboard(request):
         patient = Patient.objects.filter(
             patient_id=search
         ).first() or Patient.objects.filter(
-            phone=search
-        ).first() or Patient.objects.filter(
-            aadhaar_last4=search
+         phone=search
         ).first()
 
     return render(request, 'doctor_dashboard.html', {
@@ -185,7 +227,7 @@ def add_prescription(request, patient_id):
     try:
         doctor = Doctor.objects.get(user=request.user)
     except Doctor.DoesNotExist:
-        return HttpResponse("Doctor profile not created")
+         return HttpResponse("Doctor profile not created")
 
     patient = Patient.objects.get(patient_id=patient_id)
 
@@ -200,13 +242,50 @@ def add_prescription(request, patient_id):
 
     return render(request, 'add_prescription.html', {'patient': patient})
 
-# doctor View prescriptions
+#View prescriptions for a patient
 
+
+# @login_required
+# def view_prescriptions(request, patient_id):
+
+#     profile = Profile.objects.get(user=request.user)
+#     if profile.role != 'doctor':
+#         return redirect('login')
+
+#     patient = Patient.objects.get(patient_id=patient_id)
+#     prescriptions = Prescription.objects.filter(patient=patient)
+
+#     return render(request, 'view_prescriptions.html', {
+#         'patient': patient,
+#         'prescriptions': prescriptions
+#     })
+
+
+
+@login_required
+def my_prescriptions(request):
+    try:
+        patient = Patient.objects.get(user=request.user)
+    except Patient.DoesNotExist:
+        return redirect('patient_form')
+
+    prescriptions = Prescription.objects.filter(patient=patient)
+
+    return render(request, 'patient_prescriptions.html', {
+        'patient': patient,
+        'prescriptions': prescriptions
+    })
+
+
+
+
+# view-prescriptions for doctor
 
 @login_required
 def view_prescriptions(request, patient_id):
 
     profile = Profile.objects.get(user=request.user)
+
     if profile.role != 'doctor':
         return redirect('login')
 
@@ -217,8 +296,6 @@ def view_prescriptions(request, patient_id):
         'patient': patient,
         'prescriptions': prescriptions
     })
-
-
 # -------------------------
 # QR FETCH (API)
 # -------------------------
@@ -232,61 +309,4 @@ def get_patient(request, patient_id):
         "phone": patient.phone,
         "allergies": patient.allergies,
         "emergency_contact": patient.emergency_contact
-    })
-
-#Doctor logout
-
-from django.contrib.auth import logout
-
-def logout_view(request):
-    role = None
-    if request.user.is_authenticated:
-        try:
-            role = request.user.profile.role
-        except:
-            pass
-
-    logout(request)
-
-    if role == 'doctor':
-        return redirect('doctor_login')
-    return redirect('login')
-
-#edit patient
-
-@login_required
-def edit_patient(request, patient_id):
-
-    profile = Profile.objects.get(user=request.user)
-    if profile.role != 'doctor':
-        return redirect('login')
-
-    patient = Patient.objects.get(patient_id=patient_id)
-
-    if request.method == "POST":
-
-        patient.is_bp = 'bp' in request.POST
-        patient.is_diabetes = 'diabetes' in request.POST
-        patient.is_hiv = 'hiv' in request.POST
-        patient.is_hepatitis = 'hepatitis' in request.POST
-        patient.is_pregnant = 'pregnant' in request.POST
-        patient.is_trauma = 'trauma' in request.POST
-
-        patient.save()
-
-        return redirect('doctor_dashboard')
-
-    return render(request, 'edit_patient.html', {'patient': patient})
-
-# patient can view their prescriptions
-
-@login_required
-def patient_prescriptions(request):
-
-    patient = Patient.objects.get(user=request.user)
-
-    prescriptions = Prescription.objects.filter(patient=patient)
-
-    return render(request, 'patient_prescriptions.html', {
-        'prescriptions': prescriptions
     })

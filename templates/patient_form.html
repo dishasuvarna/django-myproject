@@ -62,9 +62,7 @@
     <h2>Patient Form</h2>
 
     <form method="POST">
-        {% csrf_token %}
-
-        <input type="text" name="aadhaar" placeholder="Aadhaar (Last 4 digits)" required>
+          {% csrf_token %}
         <input type="number" name="age" placeholder="Age" required>
 
         <!-- ✅ Gender Dropdown Added -->

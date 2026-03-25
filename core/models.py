@@ -23,8 +23,7 @@ class Profile(models.Model):
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-    patient_id = models.CharField(max_length=20, unique=True)
-    aadhaar_last4 = models.CharField(max_length=4)
+    patient_id = models.CharField(max_length=20)
 
     name = models.CharField(max_length=100)
     age = models.IntegerField()

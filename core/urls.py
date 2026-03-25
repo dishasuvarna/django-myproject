@@ -7,9 +7,9 @@ urlpatterns = [
 
     # 👤 Patient
     path('patient-form/', patient_form, name='patient_form'),
-
-    # 👤 Patient view (THIS IS YOUR FIX)
-    path('my-prescriptions/', patient_prescriptions, name='patient_prescriptions'),
+    path('my-prescriptions/', my_prescriptions, name='my_prescriptions'),
+    path('logout/', logout_view, name='logout'),
+    
 
     # 👨‍⚕️ Doctor
     path('doctor-login/', doctor_login, name='doctor_login'),
@@ -21,16 +21,14 @@ urlpatterns = [
     # 💊 Prescription
     path('add-prescription/<str:patient_id>/', add_prescription, name='add_prescription'),
 
+
     path('view-prescriptions/<str:patient_id>/', view_prescriptions, name='view_prescriptions'),
+
+    # path('view-prescriptions/<str:patient_id>/', my_prescriptions, name='view_prescriptions'),
+
+    path('my-prescriptions/', my_prescriptions, name='my_prescriptions'),
+
 
     # 📡 API
     path('get-patient/<str:patient_id>/', get_patient, name='get_patient'),
-
-    # 🚪 Logout
-    path('doctor-login/', doctor_login, name='doctor_login'),
-    path('logout/', logout_view, name='logout'),
-
-    # ✏️ Edit Patient
-    path('edit-patient/<str:patient_id>/', edit_patient, name='edit_patient'),
-
 ]

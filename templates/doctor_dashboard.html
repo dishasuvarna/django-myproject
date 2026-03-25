@@ -14,7 +14,7 @@
 <h3>Search Patient</h3>
 <form method="POST">
 {% csrf_token %}
-<input name="search" placeholder="Enter ID / Phone / Aadhaar">
+<input name="search" placeholder="Enter ID" required>
 <button type="submit">Search</button>
 </form>
 
@@ -30,6 +30,11 @@
 <a href="/logout/">
     <button>🚪 Logout</button>
 </a>
+
+
+
+<h2>QR Code:</h2>
+<img src="{{ patient.qr_code.url }}">
 
 <hr>
 
@@ -52,7 +57,11 @@
     <button>💊 Add Prescription</button>
 </a>
 
-<a href="/view-prescriptions/{{ patient.patient_id }}/">
+
+    <p>DEBUG Patient ID: {{ patient.patient_id }}</p>
+
+
+<a href="{% url 'view_prescriptions' patient.patient_id %}">
     <button>📄 View Prescriptions</button>
 </a>
 

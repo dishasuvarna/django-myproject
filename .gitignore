@@ -29,3 +29,9 @@ Doctor.objects.create(
 )
 
 print("Doctor created successfully")
+
+
+
+
+# to activate venv
+.\venv\Scripts\Activate.ps1
