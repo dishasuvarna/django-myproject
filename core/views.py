@@ -174,19 +174,30 @@ def patient_form(request):
 
     # Handle form submission
     if request.method == "POST":
+        form_data = request.POST   # ✅ ADD THIS LINE
         # phone = request.POST.get('phone')
         phone = request.user.profile.phone   # ✅ GET FROM PROFILE
         emergency_contact = request.POST.get('emergency_contact')
 
         # Validate phone
         if not phone or not phone.isdigit() or len(phone) != 10:
-            return render(request, 'patient_form.html', {'error': 'Invalid phone'})
+            #return render(request, 'patient_form.html', {'error': 'Invalid phone'})
+            return render(request, 'patient_form.html', {
+    'error': 'Invalid phone',
+    'phone': request.user.profile.phone,
+    'form': form_data   # ✅ ADD THIS
+})
 
         # ✅ NEW VALIDATION: phone and emergency contact should not be same
         if phone == emergency_contact:
+            #return render(request, 'patient_form.html', {
+                #'error': 'Phone number and emergency contact cannot be the same'
+            #})
             return render(request, 'patient_form.html', {
-                'error': 'Phone number and emergency contact cannot be the same'
-            })
+    'error': 'Phone number and emergency contact cannot be the same',
+    'phone': request.user.profile.phone,
+    'form': form_data   # ✅ ADD THIS
+})
 
         # Create patient
         patient = Patient.objects.create(
