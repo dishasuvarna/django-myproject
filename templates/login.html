@@ -53,7 +53,7 @@
         <p class="error">{{ error }}</p>
     {% endif %}
 
-    <form method="POST">
+    <form method="post">{% url 'login' %}
         {% csrf_token %}
 
         <input name="username" placeholder="Enter Username" required><br>

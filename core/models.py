@@ -12,6 +12,7 @@ import json
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     role = models.CharField(max_length=10)  # 'patient' or 'doctor'
+    phone = models.CharField(max_length=10, blank=True, null=True)
 
     def __str__(self):
         return self.user.username
@@ -28,7 +29,7 @@ class Patient(models.Model):
     name = models.CharField(max_length=100)
     age = models.IntegerField()
     gender = models.CharField(max_length=10)
-    phone = models.CharField(max_length=15, unique=True)
+    phone = models.CharField(max_length=15)
 
     blood_group = models.CharField(max_length=5)
     allergies = models.TextField(blank=True)

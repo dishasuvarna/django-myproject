@@ -55,7 +55,11 @@ def register(request):
             return render(request, 'register.html', {'error': 'User exists'})
 
         user = User.objects.create_user(username=username, password=password)
-        Profile.objects.create(user=user, role='patient')
+        profile = Profile.objects.create(user=user, role='patient')
+        profile.phone = phone   # ✅ ADD THIS
+        profile.save()
+
+        request.session['phone'] = phone   # ✅ ADD THIS LINE
 
         return redirect('login')
 
@@ -170,7 +174,8 @@ def patient_form(request):
 
     # Handle form submission
     if request.method == "POST":
-        phone = request.POST.get('phone')
+        # phone = request.POST.get('phone')
+        phone = request.user.profile.phone   # ✅ GET FROM PROFILE
         emergency_contact = request.POST.get('emergency_contact')
 
         # Validate phone
@@ -198,8 +203,10 @@ def patient_form(request):
 
         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
 
-    # GET request → show form
-    return render(request, 'patient_form.html')
+   # GET request → show form
+    return render(request, 'patient_form.html', {
+    'phone': request.user.profile.phone
+})
 
 
 @login_required
