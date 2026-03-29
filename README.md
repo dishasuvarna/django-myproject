@@ -44,8 +44,7 @@ This system solves that by providing **instant, secure access** to patient data 
 * Search patient instantly using:
 
   * Patient ID
-  * Phone number
-  * Aadhaar last 4 digits
+    
 * View patient details
 * Add prescriptions
 * Fast access for emergency scenarios
