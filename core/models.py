@@ -18,9 +18,22 @@ class Profile(models.Model):
         return self.user.username
 
 
+
+# otp
+phone = models.CharField(max_length=10, unique=True)
+otp = models.CharField(max_length=6, blank=True, null=True)
+is_verified = models.BooleanField(default=False)
+
 # -------------------------
 # PATIENT
 # -------------------------
+#otp
+emergency_contact = models.CharField(max_length=10)
+emergency_otp = models.CharField(max_length=6, blank=True, null=True)
+emergency_verified = models.BooleanField(default=False)
+
+
+
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 

@@ -81,7 +81,13 @@
         <input type="text" name="allergies" value="{{ form.allergies }}" placeholder="Allergies (if any)">
         <input type="tel" name="emergency_contact" value="{{ form.emergency_contact }}" placeholder="Emergency Contact">
 
-        <button type="submit">Submit</button>
+        <button type="submit" name="action" value="send_otp">Send OTP</button>
+        {% if otp_sent %}
+    <input type="text" name="otp" placeholder="Enter OTP" required>
+        {% endif %}
+
+
+        <button type="submit" name="action" value="verify_otp">Submit</button>
     </form>
 
     {% if error %}

@@ -1,3 +1,37 @@
+# otp_new
+
+from twilio.rest import Client
+
+account_sid = "TWILIO_ACCOUNT_SID"
+auth_token = "TWILIO_AUTH_TOKEN"
+twilio_number = "TWILIO_PHONE_NUMBER"
+
+client = Client(account_sid, auth_token)
+
+
+def send_otp(phone, otp):
+    try:
+        client.messages.create(
+            body=f"Your OTP is {otp}",
+            from_=twilio_number,
+            to="+91" + phone
+        )
+        print("OTP sent successfully")
+    except Exception as e:
+        print("Error sending OTP:", e)
+
+
+
+
+
+
+
+
+
+
+
+from urllib import request
+
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
@@ -8,9 +42,7 @@ import re
 from .models import Patient, Doctor, Profile, Prescription
 
 
-# PASSWORD VALIDATION
-# def is_strong_password(password):
-#     return len(password) >= 6 and re.search(r"[a-z]", password) and re.search(r"[0-9]", password)
+
 
 
 def is_strong_password(password):
@@ -41,9 +73,17 @@ def is_strong_password(password):
 # -------------------------
 def register(request):
     if request.method == "POST":
+
+        action = request.POST.get('action')
+
         username = request.POST.get('username').strip()
         password = request.POST.get('password')
         phone = request.POST.get('phone')
+        entered_otp = request.POST.get('otp')
+
+        # ✅ common validations
+        if not username or not password or not phone:
+            return render(request, 'register.html', {'error': 'Fill all fields first'})
 
         if not phone.isdigit() or len(phone) != 10:
             return render(request, 'register.html', {'error': 'Invalid phone'})
@@ -54,17 +94,99 @@ def register(request):
         if User.objects.filter(username=username).exists():
             return render(request, 'register.html', {'error': 'User exists'})
 
-        user = User.objects.create_user(username=username, password=password)
-        profile = Profile.objects.create(user=user, role='patient')
-        profile.phone = phone   # ✅ ADD THIS
-        profile.save()
+        # 🔹 STEP 1: SEND OTP
+        if action == "send_otp":
 
-        request.session['phone'] = phone   # ✅ ADD THIS LINE
+            otp = generate_otp()
 
-        return redirect('login')
+            request.session['reg_data'] = {
+                'username': username,
+                'password': password,
+                'phone': phone,
+                'otp': otp
+            }
+
+            send_otp(phone, otp)
+            print("REGISTER OTP:", otp)
+
+            return render(request, 'register.html', {
+                'otp_sent': True,
+                'username': username,
+                'phone': phone
+            })
+
+        # 🔹 STEP 2: VERIFY OTP + CREATE USER
+        elif action == "verify_otp":
+
+            data = request.session.get('reg_data')
+
+            if not data:
+                return render(request, 'register.html', {'error': 'Send OTP first'})
+
+            if not entered_otp:
+                return render(request, 'register.html', {
+                    'error': 'Enter OTP',
+                    'otp_sent': True
+                })
+
+            if str(entered_otp) == str(data['otp']):
+
+                user = User.objects.create_user(
+                    username=data['username'],
+                    password=data['password']
+                )
+
+                profile = Profile.objects.create(user=user, role='patient')
+                profile.phone = data['phone']
+                profile.save()
+
+                del request.session['reg_data']
+
+                return redirect('login')
+
+            return render(request, 'register.html', {
+                'error': 'Invalid OTP',
+                'otp_sent': True
+            })
 
     return render(request, 'register.html')
 
+
+
+
+
+import random
+
+def generate_otp():
+    return str(random.randint(100000, 999999))
+
+#otp_new
+def verify_register_otp(request):
+    if request.method == "POST":
+        entered_otp = request.POST.get('otp')
+        data = request.session.get('reg_data')
+
+        if not data:
+            return redirect('register')
+
+        if str(entered_otp) == str(data['otp']):
+
+            user = User.objects.create_user(
+                username=data['username'],
+                password=data['password']
+            )
+
+            profile = Profile.objects.create(user=user, role='patient')
+            profile.phone = data['phone']
+            profile.save()
+
+            del request.session['reg_data']
+
+            return redirect('login')
+
+        return render(request, 'verify_register_otp.html', {'error': 'Invalid OTP'})
+
+    return render(request, 'verify_register_otp.html')
 
 # -------------------------
 # LOGIN
@@ -93,74 +215,6 @@ def login_view(request):
 # -------------------------
 # PATIENT FORM → QR ONLY
 # -------------------------
-# @login_required
-# def patient_form(request):
-
-#     patient = Patient.objects.filter(user=request.user).first()
-
-#     if patient:
-#         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
-
-#     if request.method == "POST":
-#        phone = request.POST.get('phone')
-
-#     if not phone or not phone.isdigit() or len(phone) != 10:
-#             return render(request, 'patient_form.html', {'error': 'Invalid phone'})
-
-#     patient = Patient.objects.create(
-#             user=request.user,
-#         patient_id=f"P{request.user.id}",
-#             name=request.user.username,
-#             age=request.POST.get('age') or 0,
-#             gender=request.POST.get('gender') or "N/A",
-#             phone=phone,
-#             blood_group=request.POST.get('blood_group') or "",
-#             allergies=request.POST.get('allergies') or "",
-#             emergency_contact=request.POST.get('emergency_contact') or ""
-#         )
-
-#     return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
-
-#     return render(request, 'patient_form.html')
-
-
-# @login_required
-# def scan_qr(request):
-#     return render(request, 'scan.html')
-
-
-# @login_required
-# def patient_form(request):
-
-#     patient = Patient.objects.filter(user=request.user).first()
-
-#     # If patient already exists → show QR
-#     if patient:
-#         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
-
-#     # Handle form submission
-#     if request.method == "POST":
-#         phone = request.POST.get('phone')
-
-#         # Validate phone
-#         if not phone or not phone.isdigit() or len(phone) != 10:
-#             return render(request, 'patient_form.html', {'error': 'Invalid phone'})
-
-#         # Create patient
-#         patient = Patient.objects.create(
-#             user=request.user,
-#             patient_id=f"P{request.user.id}",
-#             name=request.user.username,
-#             age=request.POST.get('age') or 0,
-#             gender=request.POST.get('gender') or "N/A",
-#             phone=phone,
-#             blood_group=request.POST.get('blood_group') or "",
-#             allergies=request.POST.get('allergies') or "",
-#             emergency_contact=request.POST.get('emergency_contact') or ""
-#         )
-
-
-
 
 
 @login_required
@@ -172,52 +226,199 @@ def patient_form(request):
     if patient:
         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
 
-    # Handle form submission
     if request.method == "POST":
-        form_data = request.POST   # ✅ ADD THIS LINE
-        # phone = request.POST.get('phone')
-        phone = request.user.profile.phone   # ✅ GET FROM PROFILE
+        form_data = request.POST
+        phone = request.user.profile.phone
         emergency_contact = request.POST.get('emergency_contact')
+        entered_otp = request.POST.get('otp')
 
-        # Validate phone
+        # validations (same as yours)
+        if not all(form_data.values()):
+            return render(request, 'patient_form.html', {
+                'error': 'Fill all fields first',
+                'phone': phone,
+                'form': form_data
+            })
+
         if not phone or not phone.isdigit() or len(phone) != 10:
-            #return render(request, 'patient_form.html', {'error': 'Invalid phone'})
             return render(request, 'patient_form.html', {
-    'error': 'Invalid phone',
-    'phone': request.user.profile.phone,
-    'form': form_data   # ✅ ADD THIS
-})
+                'error': 'Invalid phone',
+                'phone': phone,
+                'form': form_data
+            })
 
-        # ✅ NEW VALIDATION: phone and emergency contact should not be same
         if phone == emergency_contact:
-            #return render(request, 'patient_form.html', {
-                #'error': 'Phone number and emergency contact cannot be the same'
-            #})
             return render(request, 'patient_form.html', {
-    'error': 'Phone number and emergency contact cannot be the same',
-    'phone': request.user.profile.phone,
-    'form': form_data   # ✅ ADD THIS
-})
+                'error': 'Phone and emergency contact cannot be same',
+                'phone': phone,
+                'form': form_data
+            })
 
-        # Create patient
-        patient = Patient.objects.create(
-            user=request.user,
-            patient_id=f"P{request.user.id}",
-            name=request.user.username,
-            age=request.POST.get('age') or 0,
-            gender=request.POST.get('gender') or "N/A",
-            phone=phone,
-            blood_group=request.POST.get('blood_group') or "",
-            allergies=request.POST.get('allergies') or "",
-            emergency_contact=emergency_contact or ""
-        )
+        session_otp = request.session.get('emergency_otp')
 
+        # 🔹 STEP 1: SEND OTP
+        if not session_otp:
+            otp = generate_otp()
+
+            request.session['patient_data'] = dict(form_data)
+            request.session['emergency_otp'] = otp
+
+            print("EMERGENCY OTP:", otp)
+
+            return render(request, 'patient_form.html', {
+                'phone': phone,
+                'form': form_data,
+                'otp_sent': True
+            })
+
+        # 🔹 STEP 2: VERIFY OTP
+        else:
+            if not entered_otp:
+                return render(request, 'patient_form.html', {
+                    'error': 'Enter OTP',
+                    'phone': phone,
+                    'form': form_data,
+                    'otp_sent': True
+                })
+
+            if str(entered_otp) == str(session_otp):
+
+                data = request.session.get('patient_data')
+
+                patient = Patient.objects.create(
+                    user=request.user,
+                    patient_id=f"P{request.user.id}",
+                    name=request.user.username,
+                    age=data.get('age') or 0,
+                    gender=data.get('gender') or "N/A",
+                    phone=phone,
+                    blood_group=data.get('blood_group') or "",
+                    allergies=data.get('allergies') or "",
+                    emergency_contact=data.get('emergency_contact') or ""
+                )
+
+                # clear session
+                del request.session['emergency_otp']
+                del request.session['patient_data']
+
+                return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
+
+            return render(request, 'patient_form.html', {
+                'error': 'Invalid OTP',
+                'phone': phone,
+                'form': form_data,
+                'otp_sent': True
+            })
+
+    # GET request
+    return render(request, 'patient_form.html', {
+        'phone': request.user.profile.phone
+    })
+        
+        
+        
+
+@login_required
+def patient_form(request):
+
+    patient = Patient.objects.filter(user=request.user).first()
+
+    # If patient already exists → show QR
+    if patient:
         return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
 
-   # GET request → show form
+    if request.method == "POST":
+        form_data = request.POST
+        phone = request.user.profile.phone
+        emergency_contact = request.POST.get('emergency_contact')
+        entered_otp = request.POST.get('otp')
+
+        # validations (same as yours)
+        if not all(form_data.values()):
+            return render(request, 'patient_form.html', {
+                'error': 'Fill all fields first',
+                'phone': phone,
+                'form': form_data
+            })
+
+        if not phone or not phone.isdigit() or len(phone) != 10:
+            return render(request, 'patient_form.html', {
+                'error': 'Invalid phone',
+                'phone': phone,
+                'form': form_data
+            })
+
+        if phone == emergency_contact:
+            return render(request, 'patient_form.html', {
+                'error': 'Phone and emergency contact cannot be same',
+                'phone': phone,
+                'form': form_data
+            })
+
+        session_otp = request.session.get('emergency_otp')
+
+        # 🔹 STEP 1: SEND OTP
+        if not session_otp:
+            otp = generate_otp()
+
+            request.session['patient_data'] = dict(form_data)
+            request.session['emergency_otp'] = otp
+
+            print("EMERGENCY OTP:", otp)
+
+            return render(request, 'patient_form.html', {
+                'phone': phone,
+                'form': form_data,
+                'otp_sent': True
+            })
+
+        # 🔹 STEP 2: VERIFY OTP
+        else:
+            if not entered_otp:
+                return render(request, 'patient_form.html', {
+                    'error': 'Enter OTP',
+                    'phone': phone,
+                    'form': form_data,
+                    'otp_sent': True
+                })
+
+            if str(entered_otp) == str(session_otp):
+
+                data = request.session.get('patient_data')
+
+                patient = Patient.objects.create(
+                    user=request.user,
+                    patient_id=f"P{request.user.id}",
+                    name=request.user.username,
+                    age=data.get('age') or 0,
+                    gender=data.get('gender') or "N/A",
+                    phone=phone,
+                    blood_group=data.get('blood_group') or "",
+                    allergies=data.get('allergies') or "",
+                    emergency_contact=data.get('emergency_contact') or ""
+                )
+
+                # clear session
+                del request.session['emergency_otp']
+                del request.session['patient_data']
+
+                return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
+
+            return render(request, 'patient_form.html', {
+                'error': 'Invalid OTP',
+                'phone': phone,
+                'form': form_data,
+                'otp_sent': True
+            })
+
+    # GET request
     return render(request, 'patient_form.html', {
-    'phone': request.user.profile.phone
-})
+        'phone': request.user.profile.phone
+    })
+
+
+
+
 
 
 @login_required

@@ -1,3 +1,4 @@
+from . import views
 from django.urls import path
 from .views import *
 
@@ -31,4 +32,11 @@ urlpatterns = [
 
     # 📡 API
     path('get-patient/<str:patient_id>/', get_patient, name='get_patient'),
+
+
+    #otp
+    path('verify-register-otp/', views.verify_register_otp, name='verify_register_otp'),
+
+    #otp_new
+    path("send-otp/", views.send_otp, name="send_otp"),
 ]

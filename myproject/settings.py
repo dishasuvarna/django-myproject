@@ -1,10 +1,20 @@
+import os
+
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+
+
 from pathlib import Path
 import os   # ✅ ADD THIS
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-SECRET_KEY = 'django-insecure-0cnh1tc(!-(ot$wqrsjaqo(cnlpv-612n@e_5+^&q!5co#e^2b'
+# SECRET_KEY = "django-insecure-xxxx"
 
 DEBUG = True
 
@@ -134,3 +144,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 
 LOGIN_REDIRECT_URL = 'patient_form'
+
+
+
+
+
