@@ -64,6 +64,7 @@
     <form method="POST">
           {% csrf_token %}
         <input type="number" name="age" value="{{ form.age }}" placeholder="Age" required>
+        <!input type="number" name="age"!>
 
         <!-- ✅ Gender Dropdown Added -->
         <select name="gender" required>

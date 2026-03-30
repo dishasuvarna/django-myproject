@@ -44,7 +44,7 @@ class Patient(models.Model):
     gender = models.CharField(max_length=10)
     phone = models.CharField(max_length=15)
 
-    blood_group = models.CharField(max_length=5)
+    blood_group = models.CharField(max_length=10)
     allergies = models.TextField(blank=True)
     emergency_contact = models.CharField(max_length=15)
 
