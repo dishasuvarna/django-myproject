@@ -8,33 +8,7 @@ myproject/settings.py
 
 
 
-# python manage.py shell
 
-
-# from django.contrib.auth.models import User
-# from core.models import Profile, Doctor
-
-# create user
-# user = User.objects.create_user(username='doc2', password='789doc2')
-
-# assign role
-# Profile.objects.create(user=user, role='doctor')
-
-# create doctor
-# Doctor.objects.create(
-#     user=user,
-#     doctor_id='D2',
-#     name='Dr. Doc2',
-#     specialization='General'
-# )
-
-# print("Doctor created successfully")
-
-
-
-
-# to activate venv
-# .\venv\Scripts\Activate.ps1
 
 
 # Twilio Configuration
