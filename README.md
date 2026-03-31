@@ -127,7 +127,7 @@ python manage.py runserver
 ### Doctor Flow
 
 1. Login with authorized account
-2. Search patient using ID / Phone / Aadhaar
+2. Search patient using ID / Code 
 3. View details
 4. Add prescription
 
