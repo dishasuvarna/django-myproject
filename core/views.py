@@ -142,7 +142,13 @@ def register(request):
                 profile.phone = data['phone']
                 profile.save()
 
-                del request.session['reg_data']
+                # #code_new
+                # import random
+
+                # patient = form.save(commit=False)
+                # patient.patient_code = f"{patient.patient_id}-{random.randint(100000, 999999)}"
+                # patient.save()
+                # del request.session['reg_data']
 
                 return redirect('login')
 
@@ -226,7 +232,10 @@ def patient_form(request):
 
     # If patient already exists → show QR
     if patient:
-        return render(request, 'qr_page.html', {'qr': patient.qr_code.url})
+        return render(request, 'qr_page.html', {
+            'qr': patient.qr_code.url,
+            'patient': patient
+})
 
     if request.method == "POST":
         form_data = request.POST
@@ -324,7 +333,7 @@ def patient_form(request):
             # emergency_otp
             message = client.messages.create(
     body=f"Your OTP is {otp}",
-    from_='+1XXXXXXXXXX',  # Twilio number
+    from_='Twilio number',  # Twilio number
     to=f'+91{emergency_contact}'# MUST include +91
 
 
@@ -391,6 +400,12 @@ def patient_form(request):
                     allergies=data.get('allergies') or "",
                     emergency_contact=data.get('emergency_contact') or ""
                 )
+
+                #otp_new
+                import random
+                patient.patient_code = f"{patient.patient_id}-{random.randint(100000, 999999)}"
+                patient.save()
+                print("CODE GENERATED:", patient.patient_code)  # 👈 DEBUG
 
                 # clear session
                 del request.session['emergency_otp']
@@ -581,10 +596,17 @@ def doctor_dashboard(request):
     if request.method == "POST":
         search = request.POST.get('search')
 
+        # patient = Patient.objects.filter(
+        #     patient_id=search
+        # ).first() or Patient.objects.filter(
+        #  phone=search
+        # ).first()
+
+        #code_new
+        from django.db.models import Q
+
         patient = Patient.objects.filter(
-            patient_id=search
-        ).first() or Patient.objects.filter(
-         phone=search
+            Q(patient_id=search) | Q(patient_code=search) 
         ).first()
 
     return render(request, 'doctor_dashboard.html', {

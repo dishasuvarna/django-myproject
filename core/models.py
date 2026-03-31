@@ -50,6 +50,9 @@ class Patient(models.Model):
 
     qr_code = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
 
+    #code_new
+    patient_code = models.CharField(max_length=15, unique=True, null=True, blank=True)
+
     def save(self, *args, **kwargs):
         import json
 
