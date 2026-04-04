@@ -589,7 +589,7 @@ def doctor_dashboard(request):
     if search:
         search = search.strip()
 
-        # 🔥 CASE 1: code like P1-839274
+        # 🔥 CASE 1
         if "-" in search:
             patient_code = search.split("-")[0]   # P1
         else:
