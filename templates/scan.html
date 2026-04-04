@@ -9,21 +9,24 @@
 <h2>Scan Patient QR</h2>
 
 <div id="reader" style="width:300px;"></div>
-
 <div id="result"></div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <script>
+let scanned = false;
+
 function onScanSuccess(qrCodeMessage) {
+
+    if (scanned) return;
+    scanned = true;
 
     console.log("QR DATA:", qrCodeMessage);
 
     try {
-        // 🔥 Parse JSON QR
         let data = JSON.parse(qrCodeMessage);
 
-        // ✅ Show OFFLINE data
+        // ✅ STEP 1: SHOW OFFLINE DATA (UNCHANGED)
         document.getElementById("result").innerHTML = `
             <h3>Basic Info (Offline)</h3>
             Name: ${data.name}<br>
@@ -31,31 +34,82 @@ function onScanSuccess(qrCodeMessage) {
             Allergies: ${data.allergies}<br>
             Emergency: ${data.emergency_contact}
             <hr>
+            <p>📍 Getting accurate location...</p>
         `;
 
-        // ✅ Fetch FULL data from backend
+        // ✅ STEP 2: FETCH FULL DATA (UNCHANGED)
         fetch(`/get-patient/${data.id}/`)
         .then(res => res.json())
         .then(full => {
+
             document.getElementById("result").innerHTML += `
                 <h3>Full Details (Online)</h3>
                 Phone: ${full.phone}<br>
             `;
+
+            // 🔥 STEP 3: HIGH ACCURACY GPS (IMPORTANT)
+            navigator.geolocation.getCurrentPosition(
+                (pos) => {
+
+                    let lat = pos.coords.latitude;
+                    let lon = pos.coords.longitude;
+
+                    console.log("📍 GPS:", lat, lon);
+
+                    // 🔥 STEP 4: SEND TO BACKEND
+                    fetch('/emergency/scan-qr/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({
+                            patient_id: data.patient_id || ("P" + data.id),
+                            lat: lat,
+                            lon: lon
+                        })
+                    })
+                    .then(res => res.json())
+                    .then(response => {
+
+                        if (response.error) {
+                            document.getElementById("result").innerHTML +=
+                                "<p style='color:red;'>❌ Failed to send alert</p>";
+                        } else {
+                            document.getElementById("result").innerHTML +=
+                                "<p style='color:green;'>✅ Alert sent successfully</p>";
+                        }
+
+                    });
+
+                },
+                (err) => {
+                    console.log(err);
+                    document.getElementById("result").innerHTML +=
+                        "<p style='color:red;'>❌ Location permission denied</p>";
+                },
+                {
+                    enableHighAccuracy: true,  // 🔥 VERY IMPORTANT
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+
         });
 
     } catch (error) {
-        // ❌ If QR is old format
         document.getElementById("result").innerHTML =
             "<p style='color:red;'>Invalid QR format</p>";
     }
 }
 
-let html5QrcodeScanner = new Html5QrcodeScanner(
-    "reader",
-    { fps: 10, qrbox: 250 }
-);
+// 🔹 INIT SCANNER
+let scanner = new Html5QrcodeScanner("reader", {
+    fps: 10,
+    qrbox: 250
+});
 
-html5QrcodeScanner.render(onScanSuccess);
+scanner.render(onScanSuccess);
 </script>
 
 </body>

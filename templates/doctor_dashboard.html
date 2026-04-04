@@ -12,10 +12,16 @@
 
 <!-- 🔍 SEARCH SECTION -->
 <h3>Search Patient</h3>
-<form method="POST">
+<!form method="POST">
 {% csrf_token %}
-<input name="search" placeholder="Enter ID" required>
-<button type="submit">Search</button>
+<!input name="search" placeholder="Enter ID" required>
+<!button type="submit">Search</button>
+<!/form>
+
+
+<form method="GET">
+    <input type="text" name="search" value="{{ search }}" placeholder="Enter ID or Code">
+    <button type="submit">Search</button>
 </form>
 
 <hr>

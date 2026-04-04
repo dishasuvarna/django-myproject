@@ -223,8 +223,6 @@ def login_view(request):
 # -------------------------
 # PATIENT FORM → QR ONLY
 # -------------------------
-
-
 @login_required
 def patient_form(request):
 
@@ -333,7 +331,7 @@ def patient_form(request):
             # emergency_otp
             message = client.messages.create(
     body=f"Your OTP is {otp}",
-    from_='Twilio number',  # Twilio number
+    from_='twilio_number',  # Twilio number
     to=f'+91{emergency_contact}'# MUST include +91
 
 
@@ -585,29 +583,21 @@ def doctor_login(request):
 @login_required
 def doctor_dashboard(request):
 
-    profile = Profile.objects.get(user=request.user)
-
-    # 🔒 STRICT CHECK
-    if profile.role != 'doctor':
-        return redirect('login')
-
+    search = request.GET.get('search')
     patient = None
 
-    if request.method == "POST":
-        search = request.POST.get('search')
+    if search:
+        search = search.strip()
 
-        # patient = Patient.objects.filter(
-        #     patient_id=search
-        # ).first() or Patient.objects.filter(
-        #  phone=search
-        # ).first()
+        # 🔥 CASE 1: code like P1-839274
+        if "-" in search:
+            patient_code = search.split("-")[0]   # P1
+        else:
+            patient_code = search
 
-        #code_new
-        from django.db.models import Q
+        print("🔍 Extracted patient_id:", patient_code)
 
-        patient = Patient.objects.filter(
-            Q(patient_id=search) | Q(patient_code=search) 
-        ).first()
+        patient = Patient.objects.filter(patient_id=patient_code).first()
 
     return render(request, 'doctor_dashboard.html', {
         'patient': patient

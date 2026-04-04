@@ -1,5 +1,5 @@
 from . import views
-from django.urls import path
+from django.urls import include, path
 from .views import *
 
 urlpatterns = [
@@ -39,4 +39,7 @@ urlpatterns = [
 
     #otp_new
     path("send-otp/", views.send_otp, name="send_otp"),
+
+    #drf_added
+    path('emergency/', include('emergency.urls')), 
 ]
