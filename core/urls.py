@@ -7,15 +7,18 @@ urlpatterns = [
     path('login/', login_view, name='login'),
 
     # 👤 Patient
-    path('patient-form/', patient_form, name='patient_form'),
+    # path('patient-form/', patient_form, name='patient_form'),
+    path('patient-form/', views.patient_form, name='patient_form'),
     path('my-prescriptions/', my_prescriptions, name='my_prescriptions'),
     path('logout/', logout_view, name='logout'),
+    path('qr-page/', views.qr_page, name='qr_page'),
     
 
     # 👨‍⚕️ Doctor
     path('doctor-login/', doctor_login, name='doctor_login'),
     path('doctor-dashboard/', doctor_dashboard, name='doctor_dashboard'),
-
+    #new for doctor
+    path('doctor/edit/<str:patient_id>/', views.doctor_edit_patient, name='doctor_edit_patient'),
     # 🔥 QR Scanner Page (IMPORTANT)
     path('scan/', scan_qr, name='scan_qr'),
 

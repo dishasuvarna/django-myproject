@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
     <title>Scan QR</title>
@@ -111,6 +111,154 @@ let scanner = new Html5QrcodeScanner("reader", {
 });
 
 scanner.render(onScanSuccess);
+</script>
+
+</body>
+</html> -->
+
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scan QR</title>
+</head>
+
+<body>
+
+<h2>Scan Patient QR</h2>
+
+<!-- 🔴 LOCATION WARNING UI -->
+<div id="location-warning" style="text-align:center; margin-top:20px;">
+    <p style="font-weight:bold; color:red;">
+        To scan and view patient details, location access is required.
+    </p>
+    <button onclick="requestLocation()" style="padding:10px 20px;">
+        Enable Location
+    </button>
+    <p id="error-msg" style="color:red;"></p>
+</div>
+
+<!-- 🔴 SCANNER (HIDDEN INITIALLY) -->
+<div id="reader" style="width:300px; display:none;"></div>
+
+<div id="result"></div>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script>
+let scanned = false;
+let userLat = null;
+let userLon = null;
+
+// 🔴 STEP 1: REQUEST LOCATION FIRST
+function requestLocation() {
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+            // ✅ SUCCESS
+            userLat = position.coords.latitude;
+            userLon = position.coords.longitude;
+
+            document.getElementById("location-warning").style.display = "none";
+            document.getElementById("reader").style.display = "block";
+
+            startScanner(); // start scanner ONLY after location
+        },
+        function (error) {
+            // ❌ DENIED
+            document.getElementById("error-msg").innerText =
+                "Location permission denied. Please allow to continue.";
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+}
+
+// 🔴 STEP 2: SCANNER START
+function startScanner() {
+    let scanner = new Html5QrcodeScanner("reader", {
+        fps: 10,
+        qrbox: 250
+    });
+
+    scanner.render(onScanSuccess);
+}
+
+// 🔴 STEP 3: ON SCAN (UNCHANGED LOGIC + LOCATION PASSED)
+function onScanSuccess(qrCodeMessage) {
+
+    if (scanned) return;
+    scanned = true;
+
+    console.log("QR DATA:", qrCodeMessage);
+
+    try {
+        let data = JSON.parse(qrCodeMessage);
+
+        // ✅ STEP 1: SHOW OFFLINE DATA (UNCHANGED)
+        document.getElementById("result").innerHTML = `
+            <h3>Basic Info (Offline)</h3>
+            Name: ${data.name}<br>
+            Blood Group: ${data.blood_group}<br>
+            Allergies: ${data.allergies}<br>
+            Emergency: ${data.emergency_contact}
+            <hr>
+            <p>📍 Using captured location...</p>
+        `;
+
+        // ✅ STEP 2: FETCH FULL DATA (UNCHANGED)
+        fetch(`/get-patient/${data.id}/`)
+        .then(res => res.json())
+        .then(full => {
+
+            document.getElementById("result").innerHTML += `
+                <h3>Full Details (Online)</h3>
+                Phone: ${full.phone}<br>
+            `;
+
+            console.log("📍 GPS:", userLat, userLon);
+
+            // 🔥 STEP 3: SEND TO BACKEND (UNCHANGED, just using stored location)
+            fetch('/emergency/scan-qr/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    patient_id: data.patient_id || ("P" + data.id),
+                    lat: userLat,
+                    lon: userLon,
+                    is_doctor: "{{ request.user.is_authenticated }}"
+                })
+            })
+            .then(res => res.json())
+            .then(response => {
+
+                if (response.error) {
+                    document.getElementById("result").innerHTML +=
+                        "<p style='color:red;'>❌ Failed to send alert</p>";
+                } else {
+                    document.getElementById("result").innerHTML +=
+                        "<p style='color:green;'>✅ Alert sent successfully</p>";
+                }
+
+            });
+
+        });
+
+    } catch (error) {
+        document.getElementById("result").innerHTML =
+            "<p style='color:red;'>Invalid QR format</p>";
+    }
+}
 </script>
 
 </body>

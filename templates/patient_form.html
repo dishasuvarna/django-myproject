@@ -96,10 +96,13 @@
     {% endif %}
 
 </div>
-<button onclick="sendQR()">Scan QR</button>
-#drf_added
-<!-- <script>
-// GET LOCATION
+
+</script>
+
+
+<!---drf_added-->
+<script>
+//GET LOCATION
 navigator.geolocation.getCurrentPosition((pos) => {
   fetch('/emergency/save-location/', {
     method: 'POST',
@@ -164,127 +167,7 @@ function sendQR() {
   });
 }
 </script>
-#To see GPS
-<script>
-function sendQR() {
-  navigator.geolocation.getCurrentPosition((pos) => {
-
-    let lat = pos.coords.latitude;
-    let lon = pos.coords.longitude;
-
-    // Save location
-    fetch('/emergency/save-location/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: JSON.stringify({ lat: lat, lon: lon })
-    });
-
-    // Trigger scan
-    fetch('/emergency/scan-qr/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: JSON.stringify({
-        name: "Patient",
-        phone: "{{ form.emergency_contact }}"
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert("✅ Emergency Alert Sent!");
-    });
-
-  });
-}
-</script>
-<!-- <script>
-function sendQR() {
-  fetch('/emergency/scan-qr/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name: "{{ patient.name }}",
-      phone: "{{ patient.emergency_contact }}"
-    })
-  });
-}
-</script> --> 
-
-</div>
-<button onclick="sendQR()">Scan QR</button>
-#drf_added
-<script>
-// GET LOCATION
-navigator.geolocation.getCurrentPosition((pos) => {
-  fetch('/emergency/save-location/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'   // ✅ IMPORTANT
-    },
-    body: JSON.stringify({
-      lat: pos.coords.latitude,
-      lon: pos.coords.longitude
-    })
-  });
-});
-
-fetch('/emergency/scan-qr/', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-CSRFToken': '{{ csrf_token }}'
-  },
-  body: JSON.stringify({
-    name: "Patient",
-    phone: "{{ form.emergency_contact }}"
-  })
-})
-
-
-// QR SCAN FUNCTION
-function sendQR() {
-  navigator.geolocation.getCurrentPosition((pos) => {
-
-    let lat = pos.coords.latitude;
-    let lon = pos.coords.longitude;
-
-    // save location
-    fetch('/emergency/save-location/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: JSON.stringify({ lat: lat, lon: lon })
-    });
-
-    // trigger scan
-    fetch('/emergency/scan-qr/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}'
-      },
-      body: JSON.stringify({
-        name: "Patient",
-        phone: "{{ form.emergency_contact }}"
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      alert("✅ Alert sent!");
-    });
-
-  });
-}
-</script>
-#To see GPS
+<!---To see GPS-->
 <script>
 function sendQR() {
   navigator.geolocation.getCurrentPosition((pos) => {

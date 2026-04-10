@@ -14,6 +14,8 @@ class Profile(models.Model):
     role = models.CharField(max_length=10)  # 'patient' or 'doctor'
     phone = models.CharField(max_length=10, blank=True, null=True)
 
+    
+
     def __str__(self):
         return self.user.username
 
@@ -47,6 +49,7 @@ class Patient(models.Model):
     blood_group = models.CharField(max_length=10)
     allergies = models.TextField(blank=True)
     emergency_contact = models.CharField(max_length=15)
+    alert_sent = models.BooleanField(default=False)
 
     qr_code = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
 

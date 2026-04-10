@@ -71,6 +71,11 @@
     <button>📄 View Prescriptions</button>
 </a>
 
+
+#new doctor
+<a href="{% url 'doctor_edit_patient' patient.patient_id %}">
+        Edit Patient
+    </a>
 {% endif %}
 
 </body>
