@@ -12,11 +12,7 @@
 
 <!-- 🔍 SEARCH SECTION -->
 <h3>Search Patient</h3>
-<!form method="POST">
-{% csrf_token %}
-<!input name="search" placeholder="Enter ID" required>
-<!button type="submit">Search</button>
-<!/form>
+
 
 
 <form method="GET">
@@ -37,15 +33,13 @@
     <button>🚪 Logout</button>
 </a>
 
+ {% if patient %}
 
+  <h2>QR Code:</h2>
+   <img src="{{ patient.qr_code.url }}" width="220">
 
-<h2>QR Code:</h2>
-<img src="{{ patient.qr_code.url }}">
+  <!-- 🧾 PATIENT DETAILS -->
 
-<hr>
-
-<!-- 🧾 PATIENT DETAILS -->
-{% if patient %}
 
 <h3>Patient Details</h3>
 
@@ -72,11 +66,17 @@
 </a>
 
 
-#new doctor
+<!--new doctor-->
 <a href="{% url 'doctor_edit_patient' patient.patient_id %}">
         Edit Patient
     </a>
 {% endif %}
+
+
+
+ {% if request.GET.search and not patient %}
+      <p>No patient found.</p>
+  {% endif %}
 
 </body>
 </html>

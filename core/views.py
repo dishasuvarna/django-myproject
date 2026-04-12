@@ -40,7 +40,7 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 import re
 
 from .models import Patient, Doctor, Profile, Prescription
@@ -761,7 +761,13 @@ def doctor_login(request):
 @login_required
 def doctor_dashboard(request):
 
-    search = request.GET.get('search')
+    #enuser only doctor access
+    profile = Profile.objects.get(user=request.user)
+    if profile.role != 'doctor':
+          return redirect('login')
+
+    # search = request.GET.get('search')
+    search = request.GET.get('search', '')
     patient = None
 
     if search:
@@ -777,9 +783,14 @@ def doctor_dashboard(request):
 
         patient = Patient.objects.filter(patient_id=patient_code).first()
 
+    # return render(request, 'doctor_dashboard.html', {
+    #     'patient': patient
+    # })
     return render(request, 'doctor_dashboard.html', {
-        'patient': patient
-    })
+      'patient': patient,
+      'search': search
+  })
+
 
 
 
@@ -839,6 +850,13 @@ def add_prescription(request, patient_id):
         doctor = Doctor.objects.get(user=request.user)
     except Doctor.DoesNotExist:
          return HttpResponse("Doctor profile not created")
+    
+
+    #add prescriptions error
+    # try:
+    #     patient = Patient.objects.get(id=patient_id)   # ✅ FIXED
+    # except Patient.DoesNotExist:
+    #     return HttpResponse("Patient not found")
 
     patient = Patient.objects.get(patient_id=patient_id)
 
@@ -899,6 +917,12 @@ def view_prescriptions(request, patient_id):
 
     if profile.role != 'doctor':
         return redirect('login')
+    
+    #view-prescriptions error
+    # try:
+    #     patient = Patient.objects.get(id=patient_id)   # ✅ FIXED
+    # except Patient.DoesNotExist:
+    #     return HttpResponse("Patient not found")
 
     patient = Patient.objects.get(patient_id=patient_id)
     prescriptions = Prescription.objects.filter(patient=patient)

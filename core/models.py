@@ -14,7 +14,6 @@ class Profile(models.Model):
     role = models.CharField(max_length=10)  # 'patient' or 'doctor'
     phone = models.CharField(max_length=10, blank=True, null=True)
 
-    
 
     def __str__(self):
         return self.user.username
@@ -39,8 +38,7 @@ emergency_verified = models.BooleanField(default=False)
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
-    patient_id = models.CharField(max_length=20)
-
+    patient_id = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=100)
     age = models.IntegerField()
     gender = models.CharField(max_length=10)
@@ -94,7 +92,6 @@ class Patient(models.Model):
 # -------------------------
 class Doctor(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-
     doctor_id = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=100)
     specialization = models.CharField(max_length=100)

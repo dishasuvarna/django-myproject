@@ -1,4 +1,4 @@
-<h2>Prescriptions for {{ patient.name }}</h2>
+<!-- <h2>Prescriptions for {{ patient.name }}</h2>
 
 {% for p in prescriptions %}
     <hr>
@@ -6,10 +6,28 @@
     <p><b>Specialization:</b> {{ p.doctor.specialization }}</p>
     <p><b>Medicines:</b> {{ p.medicines }}</p>
     <p><b>Notes:</b> {{ p.notes }}</p>
-    <!-- <p><b>Date:</b> {{ p.created_at }}</p>
+    <p><b>Date:</b> {{ p.created_at }}</p>
 {% empty %} -->
-    <p><b>Date:</b> {{ prescription.created_at|date:"d M Y, H:i" }} >
+    <!-- <p><b>Date:</b> {{ prescription.created_at|date:"d M Y, H:i" }} >
     <p>No prescriptions found</p>
 {% endfor %}
 
-<a href="/doctor-dashboard/">⬅ Back</a>
+<a href="/doctor-dashboard/">⬅ Back</a> -->
+
+
+
+
+ <h2>Prescriptions for {{ patient.name }}</h2>
+
+  {% for p in prescriptions %}
+      <hr>
+      <p><b>Doctor:</b> {{ p.doctor.name }}</p>
+      <p><b>Specialization:</b> {{ p.doctor.specialization }}</p>
+      <p><b>Medicines:</b> {{ p.medicines }}</p>
+      <p><b>Notes:</b> {{ p.notes }}</p>
+      <p><b>Date:</b> {{ p.created_at|date:"d M Y, H:i" }}</p>
+  {% empty %}
+      <p>No prescriptions found</p>
+  {% endfor %}
+
+  <a href="/doctor-dashboard/">Back</a>
