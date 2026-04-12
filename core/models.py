@@ -114,3 +114,26 @@ class Prescription(models.Model):
 
     def __str__(self):
         return f"{self.patient.name} - {self.doctor.name}"
+    
+
+
+# medical_report
+class MedicalReport(models.Model):
+      REPORT_TYPES = [
+          ('xray', 'X-Ray'),
+          ('blood_test', 'Blood Test'),
+          ('scan', 'Scan'),
+          ('other', 'Other'),
+      ]
+
+      patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
+      doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+
+      report_type = models.CharField(max_length=50, choices=REPORT_TYPES)
+      title = models.CharField(max_length=100)
+      file = models.FileField(upload_to='medical_reports/')
+
+      uploaded_at = models.DateTimeField(auto_now_add=True)
+
+      def __str__(self):
+          return f"{self.patient.name} - {self.title}"

@@ -25,6 +25,9 @@ urlpatterns = [
     # 💊 Prescription
     path('add-prescription/<str:patient_id>/', add_prescription, name='add_prescription'),
 
+    #medical_report
+    path('upload-report/<str:patient_id>/', upload_report, name='upload_report'),
+
 
     path('view-prescriptions/<str:patient_id>/', view_prescriptions, name='view_prescriptions'),
 

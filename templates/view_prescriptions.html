@@ -1,23 +1,4 @@
-<!-- <h2>Prescriptions for {{ patient.name }}</h2>
-
-{% for p in prescriptions %}
-    <hr>
-    <p><b>Doctor:</b> {{ p.doctor.name }}</p>
-    <p><b>Specialization:</b> {{ p.doctor.specialization }}</p>
-    <p><b>Medicines:</b> {{ p.medicines }}</p>
-    <p><b>Notes:</b> {{ p.notes }}</p>
-    <p><b>Date:</b> {{ p.created_at }}</p>
-{% empty %} -->
-    <!-- <p><b>Date:</b> {{ prescription.created_at|date:"d M Y, H:i" }} >
-    <p>No prescriptions found</p>
-{% endfor %}
-
-<a href="/doctor-dashboard/">⬅ Back</a> -->
-
-
-
-
- <h2>Prescriptions for {{ patient.name }}</h2>
+<h2>Prescriptions for {{ patient.name }}</h2>
 
   {% for p in prescriptions %}
       <hr>
@@ -28,6 +9,26 @@
       <p><b>Date:</b> {{ p.created_at|date:"d M Y, H:i" }}</p>
   {% empty %}
       <p>No prescriptions found</p>
+  {% endfor %}
+
+
+   <hr>
+
+  <h2>Medical Reports</h2>
+
+  {% for report in reports %}
+      <hr>
+      <p><b>Title:</b> {{ report.title }}</p>
+      <p><b>Type:</b> {{ report.get_report_type_display }}</p>
+      <p><b>Uploaded By:</b> {{ report.doctor.name }}</p>
+      <p><b>Date:</b> {{ report.uploaded_at|date:"d M Y, H:i" }}
+  </p>
+      <p>
+          <a href="{{ report.file.url }}" target="_blank">View
+  Report</a>
+      </p>
+  {% empty %}
+      <p>No reports uploaded.</p>
   {% endfor %}
 
   <a href="/doctor-dashboard/">Back</a>

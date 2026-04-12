@@ -1,0 +1,35 @@
+<h2>Upload Report for {{ patient.name }}</h2>
+
+  {% if error %}
+  <p style="color:red;">{{ error }}</p>
+  {% endif %}
+
+  <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <label>Report Type:</label>
+      <select name="report_type" required>
+          <option value="xray">X-Ray</option>
+          <option value="blood_test">Blood Test</option>
+          <option value="scan">Scan</option>
+          <option value="other">Other</option>
+      </select>
+
+      <br><br>
+
+      <label>Title:</label>
+      <input type="text" name="title" required>
+
+      <br><br>
+
+      <label>File:</label>
+      <input type="file" name="file" required>
+
+      <br><br>
+
+      <button type="submit">Upload Report</button>
+  </form>
+
+  <br>
+
+  <a href="/doctor-dashboard/">Back</a>
