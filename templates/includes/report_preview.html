@@ -1,0 +1,105 @@
+<style>
+    .reports-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .report-card {
+        display: grid;
+        grid-template-columns: 42px minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid #d9e1ec;
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    .report-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        background: #eef5ff;
+        color: #1f5fbf;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .report-title {
+        margin: 0 0 4px;
+        color: #1f2937;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .report-meta {
+        margin: 0;
+        color: #6b7280;
+        font-size: 12px;
+        line-height: 1.4;
+    }
+
+    .report-view {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 32px;
+        padding: 7px 11px;
+        border: 1px solid #d9e1ec;
+        border-radius: 6px;
+        background: #fff;
+        color: #1f2937;
+        font-size: 13px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .report-view:hover {
+        background: #f8fafc;
+    }
+
+    @media (max-width: 640px) {
+        .report-card {
+            grid-template-columns: 42px minmax(0, 1fr);
+        }
+
+        .report-view {
+            grid-column: 1 / -1;
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="reports-list">
+    {% for item in report_items %}
+        {% with report=item.report %}
+            <div class="report-card">
+                <div class="report-icon">
+                    {% if item.preview_kind == 'pdf' %}
+                        PDF
+                    {% else %}
+                        DOC
+                    {% endif %}
+                </div>
+
+                <div>
+                    <p class="report-title">{{ report.title }}</p>
+                    <p class="report-meta">
+                        {{ report.get_report_type_display }} uploaded by {{ report.doctor.name }}
+                    </p>
+                    <p class="report-meta">
+                        {{ report.uploaded_at|date:"d M Y" }} at {{ report.uploaded_at|date:"h:i A" }}
+                    </p>
+                </div>
+
+                <a class="report-view" href="{{ report.file.url }}" target="_blank" rel="noopener">View</a>
+            </div>
+        {% endwith %}
+    {% empty %}
+        <p class="empty">No reports uploaded.</p>
+    {% endfor %}
+</div>

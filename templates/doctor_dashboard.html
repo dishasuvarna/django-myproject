@@ -1,87 +1,440 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Doctor Dashboard</title>
+    <style>
+        :root {
+            --bg: #f3f6fa;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #d6dee9;
+            --soft-border: #edf1f6;
+            --primary: #1f5fbf;
+            --primary-dark: #174a95;
+            --success: #0f766e;
+            --warning-bg: #fff7ed;
+            --warning: #9a3412;
+            --surface: #f8fafc;
+            --shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 30px 0 36px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 18px;
+        }
+
+        .title-group h1 {
+            margin: 0;
+            font-size: 26px;
+            line-height: 1.2;
+        }
+
+        .title-group p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 22px;
+        }
+
+        .search-card {
+            margin-bottom: 18px;
+        }
+
+        .section-title {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .section-subtitle {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--soft-border);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .search-input {
+            width: 100%;
+            min-height: 44px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 15px;
+            background: #fff;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(31, 95, 191, 0.12);
+            outline: none;
+        }
+
+        .button,
+        button.button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 10px 14px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1;
+            text-decoration: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .button:hover,
+        button.button:hover {
+            background: var(--primary-dark);
+        }
+
+        .button.secondary {
+            background: #fff;
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .button.secondary:hover {
+            background: #f9fafb;
+        }
+
+        .button.success {
+            background: var(--success);
+        }
+
+        .button.success:hover {
+            background: #115e59;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+            gap: 18px;
+            align-items: start;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .detail-item {
+            background: var(--surface);
+            border: 1px solid var(--soft-border);
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        .detail-label {
+            display: block;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            font-size: 15px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .patient-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #e8f1ff;
+            color: #174a95;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .qr-card {
+            text-align: center;
+        }
+
+        .qr-image {
+            width: min(220px, 100%);
+            height: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            background: #fff;
+        }
+
+        .qr-caption {
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .actions-card {
+            margin-top: 18px;
+        }
+
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .empty-state {
+            margin-top: 20px;
+            border: 1px solid #fed7aa;
+            background: var(--warning-bg);
+            color: var(--warning);
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        .ready-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .loading-text {
+            display: none;
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .search-card.is-loading .loading-text {
+            display: block;
+        }
+
+        @media (max-width: 760px) {
+            .page {
+                width: min(100% - 24px, 1120px);
+                padding: 18px 0;
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .section-header,
+            .ready-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .search-form,
+            .dashboard-grid,
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .button,
+            button.button {
+                width: 100%;
+            }
+
+            .actions-row {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
+<main class="page">
+    <header class="topbar">
+        <div class="title-group">
+            <h1>Doctor Dashboard</h1>
+            <p>Search, review, and manage patient emergency records.</p>
+        </div>
 
-<h2>👨‍⚕️ Doctor Dashboard</h2>
+        <a class="button secondary" href="{% url 'logout' %}">Logout</a>
+    </header>
 
-<hr>
+    <section class="card search-card" id="search-card">
+        <div class="section-header">
+            <div>
+                <h2 class="section-title">Search Patient</h2>
+                <p class="section-subtitle">Use the registered patient ID or complete patient code.</p>
+            </div>
+        </div>
+        <form class="search-form" method="GET" id="patient-search-form">
+            <input
+                class="search-input"
+                type="text"
+                name="search"
+                value="{{ search }}"
+                placeholder="Enter patient ID or patient code"
+                autocomplete="off"
+            >
+            <button class="button" type="submit">Search</button>
+        </form>
+        <p class="loading-text" id="loading-text">Searching patient record...</p>
+    </section>
 
-<!-- 🔍 SEARCH SECTION -->
-<h3>Search Patient</h3>
+    {% if patient %}
+        <section class="dashboard-grid" aria-label="Patient overview">
+            <div class="card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">Patient Details</h2>
+                        <p class="section-subtitle">Core information used during emergency care.</p>
+                    </div>
+                    <span class="patient-badge">{{ patient.patient_id }}</span>
+                </div>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Patient ID</span>
+                        <span class="detail-value">{{ patient.patient_id }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Patient Code</span>
+                        <span class="detail-value">{{ patient.patient_code|default:"Not assigned" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value">{{ patient.name }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Age</span>
+                        <span class="detail-value">{{ patient.age }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Gender</span>
+                        <span class="detail-value">{{ patient.gender }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Blood Group</span>
+                        <span class="detail-value">{{ patient.blood_group }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">{{ patient.phone }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Emergency Contact</span>
+                        <span class="detail-value">{{ patient.emergency_contact }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Allergies</span>
+                        <span class="detail-value">{{ patient.allergies|default:"None recorded" }}</span>
+                    </div>
+                </div>
+            </div>
 
+            <aside class="card qr-card">
+                <div class="section-header">
+                    <div>
+                        <h2 class="section-title">QR Code</h2>
+                        <p class="section-subtitle">Emergency access code.</p>
+                    </div>
+                </div>
+                <img class="qr-image" src="{{ patient.qr_code.url }}" alt="QR code for {{ patient.name }}">
+                <p class="qr-caption">Use this code for emergency record access.</p>
+            </aside>
+        </section>
 
+        <section class="card actions-card">
+            <div class="section-header">
+                <div>
+                    <h2 class="section-title">Actions</h2>
+                    <p class="section-subtitle">Manage treatment notes, reports, and patient details.</p>
+                </div>
+            </div>
+            <div class="actions-row">
+                <a class="button success" href="{% url 'add_prescription' patient.patient_id %}">Add Prescription</a>
+                <a class="button" href="{% url 'upload_report' patient.patient_id %}">Upload Report</a>
+                <a class="button secondary" href="{% url 'view_prescriptions' patient.patient_id %}">View Prescriptions</a>
+                <a class="button secondary" href="{% url 'doctor_edit_patient' patient.patient_id %}">Edit Patient</a>
+                <a class="button secondary" href="{% url 'scan_qr' %}">Scan QR</a>
+            </div>
+        </section>
+    {% elif request.GET.search %}
+        <div class="empty-state">
+            No patient found for "{{ search }}".
+        </div>
+    {% else %}
+        <div class="card ready-card">
+            <div>
+                <h2 class="section-title">Ready to Search</h2>
+                <p class="section-subtitle">Enter a patient ID or patient code to view details and doctor actions.</p>
+            </div>
+            <div class="actions-row">
+                <a class="button secondary" href="{% url 'scan_qr' %}">Scan QR</a>
+            </div>
+        </div>
+    {% endif %}
+</main>
 
-<form method="GET">
-    <input type="text" name="search" value="{{ search }}" placeholder="Enter ID or Code">
-    <button type="submit">Search</button>
-</form>
+<script>
+    const searchForm = document.getElementById('patient-search-form');
+    const searchCard = document.getElementById('search-card');
 
-<hr>
-
-<!-- 📷 QUICK ACTIONS -->
-<h3>Quick Actions</h3>
-
-<a href="/scan/">
-    <button>📷 Scan QR</button>
-</a>
-
-<a href="/logout/">
-    <button>🚪 Logout</button>
-</a>
-
- {% if patient %}
-
-  <h2>QR Code:</h2>
-   <img src="{{ patient.qr_code.url }}" width="220">
-
-  <!-- 🧾 PATIENT DETAILS -->
-
-
-<h3>Patient Details</h3>
-
-<p><b>Name:</b> {{ patient.name }}</p>
-<p><b>Blood Group:</b> {{ patient.blood_group }}</p>
-<p><b>Phone:</b> {{ patient.phone }}</p>
-<p><b>Allergies:</b> {{ patient.allergies }}</p>
-
-<hr>
-
-<!-- 💊 ACTIONS FOR THIS PATIENT -->
-<h3>Actions</h3>
-
-<a href="/add-prescription/{{ patient.patient_id }}/">
-    <button>💊 Add Prescription</button>
-</a>
-
-<a href="{% url 'upload_report' patient.patient_id %}">
-      <button>Upload Report</button>
-  </a>
-
-
-    <p>DEBUG Patient ID: {{ patient.patient_id }}</p>
-
-
-<a href="{% url 'view_prescriptions' patient.patient_id %}">
-    <button>📄 View Prescriptions</button>
-</a>
-
-
-<a href="{% url 'doctor_edit_patient' patient.patient_id %}">
-        Edit Patient
-    </a>
-
-
-{% endif %}
-
-
-
- {% if request.GET.search and not patient %}
-      <p>No patient found.</p>
-  {% endif %}
-
+    searchForm.addEventListener('submit', function () {
+        searchCard.classList.add('is-loading');
+    });
+</script>
 </body>
 </html>

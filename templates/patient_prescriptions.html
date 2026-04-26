@@ -5,16 +5,18 @@
 
     <style>
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             background-color: #f4f6f8;
+            margin: 0;
+            padding: 24px;
         }
 
         .container {
-            width: 500px;
-            margin: 40px auto;
+            max-width: 900px;
+            margin: 0 auto;
             background: white;
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 8px;
             box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
         }
 
@@ -22,11 +24,27 @@
             text-align: center;
         }
 
-        .card {
+        .card,
+        .report-card {
             border: 1px solid #ddd;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 5px;
+            padding: 12px;
+            margin-top: 12px;
+            border-radius: 8px;
+        }
+
+        .report-preview {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .report-frame {
+            width: 100%;
+            min-height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
         }
 
         .empty {
@@ -34,17 +52,14 @@
             color: gray;
         }
 
-        button {
+        .button {
+            display: inline-block;
             padding: 8px 12px;
             background-color: #2c7be5;
             color: white;
             border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #1a5edb;
+            border-radius: 6px;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -53,35 +68,32 @@
 
 <div class="container">
 
-<h2>📄 My Prescriptions</h2>
+<h2>My Prescriptions</h2>
 
-{% if prescriptions %}
-
-    {% for p in prescriptions %}
-        <div class="card">
-
-            <p><b>Doctor:</b> {{ p.doctor.name }}</p>
-            <p><b>Specialization:</b> {{ p.doctor.specialization }}</p>
-            <p><b>Medicines:</b> {{ p.medicines }}</p>
-            <p><b>Notes:</b> {{ p.notes }}</p>
-
-            <p><b>Date:</b> {{ p.created_at|date:"Y-m-d" }}</p>
-            <p><b>Time:</b> {{ p.created_at|time:"H:i:s" }}</p>
-
-        </div>
-    {% endfor %}
-
-{% else %}
-
+{% for p in prescriptions %}
+    <div class="card">
+        <p><b>Doctor:</b> {{ p.doctor.name }}</p>
+        <p><b>Specialization:</b> {{ p.doctor.specialization }}</p>
+        <p><b>Medicines:</b> {{ p.medicines }}</p>
+        <p><b>Notes:</b> {{ p.notes }}</p>
+        <p><b>Date:</b> {{ p.created_at|date:"d M Y" }}</p>
+        <p><b>Time:</b> {{ p.created_at|date:"h:i:s A" }}</p>
+        {% if p.updated_at|date:"U" != p.created_at|date:"U" %}
+            <p><b>Last Edited:</b> {{ p.updated_at|date:"d M Y" }} at {{ p.updated_at|date:"h:i:s A" }}</p>
+        {% endif %}
+    </div>
+{% empty %}
     <p class="empty">No prescriptions available</p>
+{% endfor %}
 
-{% endif %}
+<hr>
+
+<h2>Medical Reports</h2>
+{% include "includes/report_preview.html" %}
 
 <br>
 
-<a href="/patient-form/">
-    <button>⬅ Back</button>
-</a>
+<a class="button" href="{% url 'patient_form' %}">Back</a>
 
 </div>
 

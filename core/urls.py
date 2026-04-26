@@ -24,6 +24,7 @@ urlpatterns = [
 
     # 💊 Prescription
     path('add-prescription/<str:patient_id>/', add_prescription, name='add_prescription'),
+    path('edit-prescription/<int:prescription_id>/', edit_prescription, name='edit_prescription'),
 
     #medical_report
     path('upload-report/<str:patient_id>/', upload_report, name='upload_report'),
@@ -32,9 +33,6 @@ urlpatterns = [
     path('view-prescriptions/<str:patient_id>/', view_prescriptions, name='view_prescriptions'),
 
     # path('view-prescriptions/<str:patient_id>/', my_prescriptions, name='view_prescriptions'),
-
-    path('my-prescriptions/', my_prescriptions, name='my_prescriptions'),
-
 
     # 📡 API
     path('get-patient/<str:patient_id>/', get_patient, name='get_patient'),

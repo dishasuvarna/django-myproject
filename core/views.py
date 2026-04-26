@@ -24,6 +24,9 @@ def send_otp(phone, otp):
         print("Error sending OTP:", e)
 
 
+
+
+
 # # fast2sms
 # import requests
 
@@ -41,9 +44,49 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
+from django.utils import timezone
+from django.db.models import Q
+from datetime import date
 import re
 
 from .models import Patient, Doctor, Profile, Prescription, MedicalReport
+from .services import MedicalService
+
+
+def pregnancy_start_date_from_month(month):
+    try:
+        month = int(month)
+    except (TypeError, ValueError):
+        month = 1
+
+    month = max(1, min(month, 10))
+    today = timezone.localdate()
+    total_months = today.year * 12 + today.month - (month - 1)
+    year = (total_months - 1) // 12
+    calendar_month = (total_months - 1) % 12 + 1
+    day = min(today.day, 28)
+
+    return date(year, calendar_month, day)
+
+
+def report_preview_kind(report):
+    file_name = report.file.name.lower()
+
+    if file_name.endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
+        return 'image'
+    if file_name.endswith('.pdf'):
+        return 'pdf'
+    return 'file'
+
+
+def reports_with_preview(reports):
+    return [
+        {
+            'report': report,
+            'preview_kind': report_preview_kind(report),
+        }
+        for report in reports
+    ]
 
 
 
@@ -420,29 +463,57 @@ def doctor_dashboard(request):
           return redirect('login')
 
     # search = request.GET.get('search')
-    search = request.GET.get('search', '')
+    search = request.GET.get('search', '').strip()
     patient = None
+    prescriptions = []
+    report_items = []
 
     if search:
-        search = search.strip()
+         patient = Patient.objects.filter(
+              Q(patient_id__iexact=search) | Q(patient_code__iexact=search)
+          ).first()
+         if not patient and "-" in search:
+              patient_id = search.split("-", 1)[0]
+              patient = Patient.objects.filter(patient_id__iexact=patient_id).first()
 
-        # 🔥 CASE 1
-        if "-" in search:
-            patient_code = search.split("-")[0]   # P1
-        else:
-            patient_code = search
+    if patient:
+        records = MedicalService.getPatientRecords(patient.patient_id)
+        prescriptions = records['prescriptions']
+        reports = records['reports']
+        report_items = reports_with_preview(reports)
+    
 
-        print("🔍 Extracted patient_id:", patient_code)
-
-        patient = Patient.objects.filter(patient_id=patient_code).first()
-
-    # return render(request, 'doctor_dashboard.html', {
-    #     'patient': patient
-    # })
     return render(request, 'doctor_dashboard.html', {
-      'patient': patient,
-      'search': search
-  })
+          'patient': patient,
+          'search': search,
+          'prescriptions': prescriptions,
+          'report_items': report_items,
+      })
+
+
+         
+
+
+#     if search:
+#         search = search.strip()
+
+#         # 🔥 CASE 1
+#         if "-" in search:
+#             patient_code = search.split("-")[0]   # P1
+#         else:
+#             patient_code = search
+
+#         print("🔍 Extracted patient_id:", patient_code)
+
+#         patient = Patient.objects.filter(patient_id=patient_code).first()
+
+#     # return render(request, 'doctor_dashboard.html', {
+#     #     'patient': patient
+#     # })
+#     return render(request, 'doctor_dashboard.html', {
+#       'patient': patient,
+#       'search': search
+#   })
 
 
 
@@ -463,7 +534,6 @@ def doctor_edit_patient(request, patient_id):
     # print("PATIENT OBJECT:", patient)
     # if patient:
     #     print("PATIENT DATA:", patient.__dict__)
-
     
 
     if not patient:
@@ -477,7 +547,9 @@ def doctor_edit_patient(request, patient_id):
         patient.blood_group = request.POST.get('blood_group') or patient.blood_group
         patient.allergies = request.POST.get('allergies') or patient.allergies
         patient.emergency_contact = request.POST.get('emergency_contact') or patient.emergency_contact
+        patient.is_pregnant = request.POST.get('is_pregnant') == 'on'
 
+        
         # ❗ DO NOT TOUCH PHONE
         # patient.phone = ❌ NEVER CHANGE
 
@@ -495,6 +567,9 @@ def doctor_edit_patient(request, patient_id):
 @login_required
 def add_prescription(request, patient_id):
 
+    
+
+
     profile = Profile.objects.get(user=request.user)
     if profile.role != 'doctor':
         return redirect('login')
@@ -511,18 +586,59 @@ def add_prescription(request, patient_id):
     # except Patient.DoesNotExist:
     #     return HttpResponse("Patient not found")
 
-    patient = Patient.objects.get(patient_id=patient_id)
+    patient = get_object_or_404(Patient, patient_id=patient_id)
 
     if request.method == "POST":
-        Prescription.objects.create(
-            patient=patient,
-            doctor=doctor,
-            medicines=request.POST.get('medicines'),
-            notes=request.POST.get('notes')
-        )
-        return redirect('doctor_dashboard')
+        medicines = request.POST.get('medicines', '').strip()
+        notes = request.POST.get('notes', '').strip()
+
+        if not medicines or not notes:
+            return render(request, 'add_prescription.html', {
+                'patient': patient,
+                'error': 'Medicines and notes are required'
+            })
+
+        MedicalService.addPrescription({
+            'patient': patient,
+            'doctor': doctor,
+            'medicines': medicines,
+            'notes': notes
+        })
+        return redirect('view_prescriptions', patient_id=patient.patient_id)
 
     return render(request, 'add_prescription.html', {'patient': patient})
+
+
+@login_required
+def edit_prescription(request, prescription_id):
+    profile = Profile.objects.get(user=request.user)
+    if profile.role != 'doctor':
+        return redirect('login')
+
+    doctor = get_object_or_404(Doctor, user=request.user)
+    prescription = get_object_or_404(Prescription, id=prescription_id, doctor=doctor)
+
+    if request.method == "POST":
+        medicines = request.POST.get('medicines', '').strip()
+        notes = request.POST.get('notes', '').strip()
+
+        if not medicines or not notes:
+            return render(request, 'add_prescription.html', {
+                'patient': prescription.patient,
+                'prescription': prescription,
+                'error': 'Medicines and notes are required'
+            })
+
+        prescription.medicines = medicines
+        prescription.notes = notes
+        prescription.save()
+
+        return redirect('view_prescriptions', patient_id=prescription.patient.patient_id)
+
+    return render(request, 'add_prescription.html', {
+        'patient': prescription.patient,
+        'prescription': prescription
+    })
 
 #View prescriptions for a patient
 
@@ -546,16 +662,23 @@ def add_prescription(request, patient_id):
 
 @login_required
 def my_prescriptions(request):
+    profile = Profile.objects.get(user=request.user)
+    if profile.role != 'patient':
+        return redirect('doctor_dashboard')
+
     try:
         patient = Patient.objects.get(user=request.user)
     except Patient.DoesNotExist:
         return redirect('patient_form')
 
-    prescriptions = Prescription.objects.filter(patient=patient)
+    records = MedicalService.getPatientRecords(patient.patient_id)
+    prescriptions = records['prescriptions']
+    reports = records['reports']
 
     return render(request, 'patient_prescriptions.html', {
         'patient': patient,
-        'prescriptions': prescriptions
+        'prescriptions': prescriptions,
+        'report_items': reports_with_preview(reports)
     })
 
 #medical_report
@@ -569,7 +692,7 @@ def upload_report(request, patient_id):
     except Doctor.DoesNotExist:
         return HttpResponse("Doctor profile not created")
 
-    patient = Patient.objects.get(patient_id=patient_id)
+    patient = get_object_or_404(Patient, patient_id=patient_id)
 
     if request.method == "POST":
           report_type = request.POST.get('report_type')
@@ -582,13 +705,13 @@ def upload_report(request, patient_id):
                   'error': 'All fields are required'
               })
 
-          MedicalReport.objects.create(
-              patient=patient,
-              doctor=doctor,
-              report_type=report_type,
-              title=title,
-              file=file
-          )
+          MedicalService.uploadReport({
+              'patient': patient,
+              'doctor': doctor,
+              'report_type': report_type,
+              'title': title,
+              'file': file
+          })
 
           return redirect('view_prescriptions', patient_id=patient.patient_id)
     return render(request, 'upload_report.html', {
@@ -615,14 +738,15 @@ def view_prescriptions(request, patient_id):
     if profile.role != 'doctor':
         return redirect('login')
     
-    patient = Patient.objects.get(patient_id=patient_id)
-    prescriptions = Prescription.objects.filter(patient=patient)
-    reports = MedicalReport.objects.filter(patient=patient)
+    patient = get_object_or_404(Patient, patient_id=patient_id)
+    records = MedicalService.getPatientRecords(patient.patient_id)
+    prescriptions = records['prescriptions']
+    reports = records['reports']
 
     return render(request, 'view_prescriptions.html', {
         'patient': patient,
         'prescriptions': prescriptions,
-        'reports': reports
+        'report_items': reports_with_preview(reports)
     })
 # -------------------------
 # QR FETCH (API)

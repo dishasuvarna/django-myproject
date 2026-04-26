@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 import qrcode
 from io import BytesIO
 from django.core.files import File
@@ -49,6 +50,9 @@ class Patient(models.Model):
     emergency_contact = models.CharField(max_length=15)
     alert_sent = models.BooleanField(default=False)
 
+    is_pregnant = models.BooleanField(default=False)
+    pregnancy_start_date = models.DateField(blank=True, null=True)
+
     qr_code = models.ImageField(upload_to='qr_codes/', blank=True, null=True)
 
     #code_new
@@ -82,6 +86,20 @@ class Patient(models.Model):
         # ✅ Save everything once
         super().save(*args, **kwargs)
 
+    @property
+    def pregnancy_month(self):
+        if not self.is_pregnant or not self.pregnancy_start_date:
+            return None
+
+        today = timezone.localdate()
+        months = (today.year - self.pregnancy_start_date.year) * 12
+        months += today.month - self.pregnancy_start_date.month
+
+        if today.day < self.pregnancy_start_date.day:
+            months -= 1
+
+        return max(1, min(months + 1, 10))
+
     def __str__(self):
         return self.name
 
@@ -111,6 +129,7 @@ class Prescription(models.Model):
     notes = models.TextField()
 
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.patient.name} - {self.doctor.name}"
@@ -134,6 +153,23 @@ class MedicalReport(models.Model):
       file = models.FileField(upload_to='medical_reports/')
 
       uploaded_at = models.DateTimeField(auto_now_add=True)
+      updated_at = models.DateTimeField(auto_now=True)
 
       def __str__(self):
           return f"{self.patient.name} - {self.title}"
+
+
+class AuditLog(models.Model):
+      ACTION_CHOICES = [
+          ('create', 'Create'),
+          ('update', 'Update'),
+          ('delete', 'Delete'),
+      ]
+
+      doctor_id = models.CharField(max_length=20)
+      action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+      record_id = models.CharField(max_length=50)
+      timestamp = models.DateTimeField(auto_now_add=True)
+
+      def __str__(self):
+          return f"{self.doctor_id} - {self.action} - {self.record_id}"

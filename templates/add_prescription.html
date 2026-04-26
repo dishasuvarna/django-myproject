@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Register Patient</title>
+    <title>{% if prescription %}Edit{% else %}Add{% endif %} Prescription</title>
 </head>
 
 <body>
 
-<h2>Add Prescription</h2>
+<h2>{% if prescription %}Edit{% else %}Add{% endif %} Prescription</h2>
 
+{% if error %}
+    <p style="color:red;">{{ error }}</p>
+{% endif %}
 
 <form method="POST">
 {% csrf_token %}
-<textarea name="medicines" placeholder="Enter medicines"></textarea><br>
-<textarea name="notes" placeholder="Enter notes"></textarea><br>
+<textarea name="medicines" placeholder="Enter medicines" required>{% if prescription %}{{ prescription.medicines }}{% endif %}</textarea><br>
+<textarea name="notes" placeholder="Enter notes" required>{% if prescription %}{{ prescription.notes }}{% endif %}</textarea><br>
 <button type="submit">Save</button>
 </form>
 
 </body>
 </html>
-
