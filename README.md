@@ -74,8 +74,8 @@ This system solves that by providing **instant, secure access** to patient data 
 
 ## Tech Stack
 
-* **Backend:** Django (Python)
-* **Database:** MySQL / SQLite
+* **Backend:** Django Rest Framework
+* **Database:** MySQL 
 * **Frontend:** HTML, CSS (Basic UI)
 * **QR Generation:** `qrcode` Python library
 
