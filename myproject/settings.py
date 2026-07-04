@@ -4,19 +4,16 @@ TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
-SECRET_KEY = os.getenv("SECRET_KEY")
+# SECRET_KEY = os.getenv("SECRET_KEY")
 
 
 
 from pathlib import Path
-import os   # ✅ ADD THIS
-
+  
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# SECRET_KEY = "django-insecure-xxxx"
-
-SECRET_KEY = 'django-insecure-xxxx'  # ✅ REPLACE with your actual secret key or use environment variable
+SECRET_KEY = 'django-insecure-xxxx'  
 
 DEBUG = True
 
@@ -89,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital_db',
         'USER': 'root',
-        'PASSWORD': '28756@suvarna',
+        'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '3306',
     }

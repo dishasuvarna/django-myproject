@@ -12,12 +12,12 @@ def home(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # ✅ HOME PAGE FIX
+    # HOME PAGE FIX
     path('', home),
 
     # app urls
     path('', include('core.urls')),
 ] 
 
-# 🔥 MEDIA FILES (QR IMAGE FIX)
+# MEDIA FILES (QR IMAGE FIX)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

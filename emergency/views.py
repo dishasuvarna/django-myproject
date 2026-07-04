@@ -46,7 +46,7 @@ def scan_qr(request):
         if patient_id.startswith("PP"):
             patient_id = patient_id[1:]
 
-    print("🔥 Received patient_id:", patient_id)
+    print(" Received patient_id:", patient_id)
 
     # 🔹 FIND PATIENT
     patient = Patient.objects.filter(patient_id=patient_id).first()

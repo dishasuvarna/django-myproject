@@ -61,7 +61,7 @@ class Patient(models.Model):
     def save(self, *args, **kwargs):
         import json
 
-        # 🔥 Prepare QR data BEFORE saving
+        # Prepare QR data BEFORE saving
         qr_data = {
             "id": self.patient_id,
             "name": self.name,
@@ -72,7 +72,7 @@ class Patient(models.Model):
 
         qr_string = json.dumps(qr_data)
 
-        # 🔥 Generate QR
+        # Generate QR
         qr = qrcode.make(qr_string)
 
         buffer = BytesIO()
@@ -80,10 +80,10 @@ class Patient(models.Model):
 
         file_name = f"{self.patient_id}.png"
 
-        # 🔥 Assign QR image BEFORE saving
+        #  Assign QR image BEFORE saving
         self.qr_code.save(file_name, File(buffer), save=False)
 
-        # ✅ Save everything once
+        # Save everything once
         super().save(*args, **kwargs)
 
     @property
