@@ -17,7 +17,7 @@ SECRET_KEY = 'django-insecure-xxxx'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1", "localhost", "192.168.1.5"]
 
 
 # -------------------------------
@@ -86,7 +86,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital_db',
         'USER': 'root',
-        'PASSWORD': '',
+        'PASSWORD': '*****@suvarna',
         'HOST': 'localhost',
         'PORT': '3306',
     }

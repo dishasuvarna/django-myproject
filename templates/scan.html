@@ -1,177 +1,264 @@
-<!-- <!DOCTYPE html>
-<html>
-<head>
-    <title>Scan QR</title>
-</head>
-
-<body>
-
-<h2>Scan Patient QR</h2>
-
-<div id="reader" style="width:300px;"></div>
-<div id="result"></div>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-<script>
-let scanned = false;
-
-function onScanSuccess(qrCodeMessage) {
-
-    if (scanned) return;
-    scanned = true;
-
-    console.log("QR DATA:", qrCodeMessage);
-
-    try {
-        let data = JSON.parse(qrCodeMessage);
-
-        // ✅ STEP 1: SHOW OFFLINE DATA (UNCHANGED)
-        document.getElementById("result").innerHTML = `
-            <h3>Basic Info (Offline)</h3>
-            Name: ${data.name}<br>
-            Blood Group: ${data.blood_group}<br>
-            Allergies: ${data.allergies}<br>
-            Emergency: ${data.emergency_contact}
-            <hr>
-            <p>📍 Getting accurate location...</p>
-        `;
-
-        // ✅ STEP 2: FETCH FULL DATA (UNCHANGED)
-        fetch(`/get-patient/${data.id}/`)
-        .then(res => res.json())
-        .then(full => {
-
-            document.getElementById("result").innerHTML += `
-                <h3>Full Details (Online)</h3>
-                Phone: ${full.phone}<br>
-            `;
-
-            // 🔥 STEP 3: HIGH ACCURACY GPS (IMPORTANT)
-            navigator.geolocation.getCurrentPosition(
-                (pos) => {
-
-                    let lat = pos.coords.latitude;
-                    let lon = pos.coords.longitude;
-
-                    console.log("📍 GPS:", lat, lon);
-
-                    // 🔥 STEP 4: SEND TO BACKEND
-                    fetch('/emergency/scan-qr/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify({
-                            patient_id: data.patient_id || ("P" + data.id),
-                            lat: lat,
-                            lon: lon,
-                            is_doctor: "{{ request.user.is_authenticated }}"   // 🔥 ADD THIS
-                        })
-                    })
-                    .then(res => res.json())
-                    .then(response => {
-
-                        if (response.error) {
-                            document.getElementById("result").innerHTML +=
-                                "<p style='color:red;'>❌ Failed to send alert</p>";
-                        } else {
-                            document.getElementById("result").innerHTML +=
-                                "<p style='color:green;'>✅ Alert sent successfully</p>";
-                        }
-
-                    });
-
-                },
-                (err) => {
-                    console.log(err);
-                    document.getElementById("result").innerHTML +=
-                        "<p style='color:red;'>❌ Location permission denied</p>";
-                },
-                {
-                    enableHighAccuracy: true,  // 🔥 VERY IMPORTANT
-                    timeout: 10000,
-                    maximumAge: 0
-                }
-            );
-
-        });
-
-    } catch (error) {
-        document.getElementById("result").innerHTML =
-            "<p style='color:red;'>Invalid QR format</p>";
-    }
-}
-
-// 🔹 INIT SCANNER
-let scanner = new Html5QrcodeScanner("reader", {
-    fps: 10,
-    qrbox: 250
-});
-
-scanner.render(onScanSuccess);
-</script>
-
-</body>
-</html> -->
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Scan QR</title>
+    <title>Emergency Scan</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background: #f5f7fb;
+            color: #111827;
+        }
+
+        .page {
+            max-width: 520px;
+            margin: 0 auto;
+            min-height: 100vh;
+            padding: 24px 16px;
+            box-sizing: border-box;
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid #dbe1ea;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        h2 {
+            margin: 0 0 14px;
+            font-size: 22px;
+        }
+
+        .status,
+        .patient-card {
+            margin: 12px 0;
+            padding: 12px;
+            border-radius: 6px;
+            background: #eef2f7;
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .patient-card {
+            background: #ffffff;
+            border: 1px solid #dbe1ea;
+        }
+
+        .patient-card h3 {
+            margin: 0 0 10px;
+            font-size: 17px;
+        }
+
+        .detail-row {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 8px;
+            padding: 4px 0;
+        }
+
+        .detail-label {
+            color: #4b5563;
+            font-weight: 700;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 110px;
+            box-sizing: border-box;
+            padding: 10px;
+            font-size: 15px;
+            border: 1px solid #cfd6e1;
+            border-radius: 6px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 12px;
+            padding: 13px 16px;
+            font-size: 16px;
+            border: 0;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.65;
+        }
+
+        #recordBtn {
+            background: #1f2937;
+            color: white;
+        }
+
+        #sendBtn {
+            background: #b91c1c;
+            color: white;
+        }
+
+        #response {
+            margin-top: 14px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
+<div class="page">
+    <div class="panel">
+        <h2>Emergency Alert</h2>
 
-<h2>Scan Patient QR</h2>
+        <div id="patientDetails" class="patient-card">
+            {% if patient %}
+                <h3>Patient Basic Details</h3>
+                <div class="detail-row">
+                    <div class="detail-label">Patient ID</div>
+                    <div>{{ patient.patient_id }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Name</div>
+                    <div>{{ patient.name }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Age</div>
+                    <div>{{ patient.age }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Gender</div>
+                    <div>{{ patient.gender }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Blood Group</div>
+                    <div>{{ patient.blood_group }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Allergies</div>
+                    <div>{{ patient.allergies|default:"None" }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Phone</div>
+                    <div>{{ patient.phone }}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Emergency Contact</div>
+                    <div>{{ patient.emergency_contact }}</div>
+                </div>
+            {% elif patient_error %}
+                <strong>{{ patient_error }}</strong>
+            {% else %}
+                <strong>Patient ID missing.</strong><br>
+                Open this page from the patient's QR code or use /scan/?patient_id=P3.
+            {% endif %}
+        </div>
 
-<!-- 🔴 LOCATION WARNING UI -->
-<div id="location-warning" style="text-align:center; margin-top:20px;">
-    <p style="font-weight:bold; color:red;">
-        To scan and view patient details, location access is required.
-    </p>
-    <button onclick="requestLocation()" style="padding:10px 20px;">
-        Enable Location
-    </button>
-    <p id="error-msg" style="color:red;"></p>
+        <div id="locationStatus" class="status">Checking location permission...</div>
+        <div id="speechStatus" class="status">Voice message is optional.</div>
+
+        <textarea id="messageText" placeholder="Optional rescuer message"></textarea>
+
+        <button id="recordBtn" type="button">Record Message</button>
+        <button id="sendBtn" type="button">Send Emergency SMS</button>
+
+        <div id="response"></div>
+    </div>
 </div>
 
-<!-- 🔴 SCANNER (HIDDEN INITIALLY) -->
-<div id="reader" style="width:300px; display:none;"></div>
-
-<div id="result"></div>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
-
 <script>
-let scanned = false;
-let userLat = null;
-let userLon = null;
+let latitude = null;
+let longitude = null;
+let readableAddress = "Location not available";
 
-// 🔴 STEP 1: REQUEST LOCATION FIRST
+const serverPatientId = "{{ patient.patient_id|default:patient_id|default:''|escapejs }}";
+const hasServerPatient = {% if patient %}true{% else %}false{% endif %};
+const locationStatus = document.getElementById("locationStatus");
+const speechStatus = document.getElementById("speechStatus");
+const messageText = document.getElementById("messageText");
+const recordBtn = document.getElementById("recordBtn");
+const sendBtn = document.getElementById("sendBtn");
+const responseBox = document.getElementById("response");
+const patientDetails = document.getElementById("patientDetails");
+
+function getPatientId() {
+    if (serverPatientId) {
+        return serverPatientId;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    return params.get("patient_id") || params.get("id") || params.get("patient") || "";
+}
+
+function escapeHtml(value) {
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+async function loadPatientDetailsIfNeeded() {
+    if (hasServerPatient) {
+        return;
+    }
+
+    const patientId = getPatientId();
+    if (!patientId) {
+        sendBtn.disabled = true;
+        return;
+    }
+
+    try {
+        const response = await fetch(`/get-patient/${encodeURIComponent(patientId)}/`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            patientDetails.innerHTML = `<strong>${escapeHtml(data.error || "Patient details not found")}</strong>`;
+            sendBtn.disabled = true;
+            return;
+        }
+
+        patientDetails.innerHTML = `
+            <h3>Patient Basic Details</h3>
+            <div class="detail-row"><div class="detail-label">Patient ID</div><div>${escapeHtml(data.patient_id)}</div></div>
+            <div class="detail-row"><div class="detail-label">Name</div><div>${escapeHtml(data.name)}</div></div>
+            <div class="detail-row"><div class="detail-label">Age</div><div>${escapeHtml(data.age)}</div></div>
+            <div class="detail-row"><div class="detail-label">Gender</div><div>${escapeHtml(data.gender)}</div></div>
+            <div class="detail-row"><div class="detail-label">Blood Group</div><div>${escapeHtml(data.blood_group)}</div></div>
+            <div class="detail-row"><div class="detail-label">Allergies</div><div>${escapeHtml(data.allergies || "None")}</div></div>
+            <div class="detail-row"><div class="detail-label">Phone</div><div>${escapeHtml(data.phone)}</div></div>
+            <div class="detail-row"><div class="detail-label">Emergency Contact</div><div>${escapeHtml(data.emergency_contact)}</div></div>
+        `;
+    } catch (error) {
+        patientDetails.innerHTML = "<strong>Failed to load patient details</strong>";
+        sendBtn.disabled = true;
+    }
+}
+
 function requestLocation() {
+    if (!navigator.geolocation) {
+        readableAddress = "Location not supported";
+        locationStatus.innerText = "Location not supported. SMS can still be sent.";
+        return;
+    }
+
+    locationStatus.innerText = "Allow location if available. SMS can still be sent if denied.";
+
     navigator.geolocation.getCurrentPosition(
         function (position) {
-            // ✅ SUCCESS
-            userLat = position.coords.latitude;
-            userLon = position.coords.longitude;
-
-            document.getElementById("location-warning").style.display = "none";
-            document.getElementById("reader").style.display = "block";
-
-            startScanner(); // start scanner ONLY after location
+            latitude = position.coords.latitude;
+            longitude = position.coords.longitude;
+            readableAddress = `Coordinates: ${latitude}, ${longitude}`;
+            locationStatus.innerText = "Location fetched.";
         },
-        function (error) {
-            // ❌ DENIED
-            document.getElementById("error-msg").innerText =
-                "Location permission denied. Please allow to continue.";
+        function () {
+            latitude = null;
+            longitude = null;
+            readableAddress = "Location permission denied";
+            locationStatus.innerText = "Location denied. SMS can still be sent.";
         },
         {
             enableHighAccuracy: true,
@@ -181,85 +268,122 @@ function requestLocation() {
     );
 }
 
-// 🔴 STEP 2: SCANNER START
-function startScanner() {
-    let scanner = new Html5QrcodeScanner("reader", {
-        fps: 10,
-        qrbox: 250
-    });
-
-    scanner.render(onScanSuccess);
-}
-
-// 🔴 STEP 3: ON SCAN (UNCHANGED LOGIC + LOCATION PASSED)
-function onScanSuccess(qrCodeMessage) {
-
-    if (scanned) return;
-    scanned = true;
-
-    console.log("QR DATA:", qrCodeMessage);
+async function reverseGeocodeLocation() {
+    if (!latitude || !longitude) {
+        return readableAddress;
+    }
 
     try {
-        let data = JSON.parse(qrCodeMessage);
-
-        // ✅ STEP 1: SHOW OFFLINE DATA (UNCHANGED)
-        document.getElementById("result").innerHTML = `
-            <h3>Basic Info (Offline)</h3>
-            Name: ${data.name}<br>
-            Blood Group: ${data.blood_group}<br>
-            Allergies: ${data.allergies}<br>
-            Emergency: ${data.emergency_contact}
-            <hr>
-            <p>📍 Using captured location...</p>
-        `;
-
-        // ✅ STEP 2: FETCH FULL DATA (UNCHANGED)
-        fetch(`/get-patient/${data.id}/`)
-        .then(res => res.json())
-        .then(full => {
-
-            document.getElementById("result").innerHTML += `
-                <h3>Full Details (Online)</h3>
-                Phone: ${full.phone}<br>
-            `;
-
-            console.log("📍 GPS:", userLat, userLon);
-
-            // 🔥 STEP 3: SEND TO BACKEND (UNCHANGED, just using stored location)
-            fetch('/emergency/scan-qr/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': '{{ csrf_token }}'
-                },
-                body: JSON.stringify({
-                    patient_id: data.patient_id || ("P" + data.id),
-                    lat: userLat,
-                    lon: userLon,
-                    is_doctor: "{{ request.user.is_authenticated }}"
-                })
+        const response = await fetch("/emergency/reverse-location/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                latitude: latitude,
+                longitude: longitude
             })
-            .then(res => res.json())
-            .then(response => {
-
-                if (response.error) {
-                    document.getElementById("result").innerHTML +=
-                        "<p style='color:red;'>❌ Failed to send alert</p>";
-                } else {
-                    document.getElementById("result").innerHTML +=
-                        "<p style='color:green;'>✅ Alert sent successfully</p>";
-                }
-
-            });
-
         });
+        const data = await response.json();
 
+        if (response.ok && data.location) {
+            return data.location;
+        }
     } catch (error) {
-        document.getElementById("result").innerHTML =
-            "<p style='color:red;'>Invalid QR format</p>";
+        return readableAddress;
+    }
+
+    return readableAddress;
+}
+
+function startSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+        speechStatus.innerText = "Speech recognition not supported. Type the message manually or send without a message.";
+        messageText.focus();
+        return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    speechStatus.innerText = "Listening...";
+    recordBtn.disabled = true;
+
+    recognition.onresult = function (event) {
+        messageText.value = event.results[0][0].transcript || "";
+        speechStatus.innerText = "Voice message recorded.";
+    };
+
+    recognition.onerror = function () {
+        speechStatus.innerText = "Voice permission denied or recording failed. SMS can still be sent.";
+    };
+
+    recognition.onend = function () {
+        recordBtn.disabled = false;
+        if (!messageText.value.trim()) {
+            speechStatus.innerText = "No voice message recorded. SMS can still be sent.";
+        }
+    };
+
+    recognition.start();
+}
+
+async function sendEmergencyAlert() {
+    const patientId = getPatientId();
+
+    if (!patientId) {
+        responseBox.style.color = "red";
+        responseBox.innerText = "Patient ID missing. Please open this page from the patient's QR code.";
+        return;
+    }
+
+    sendBtn.disabled = true;
+    responseBox.style.color = "#111827";
+    responseBox.innerText = "Sending emergency SMS...";
+
+    const finalLocation = await reverseGeocodeLocation();
+    const payload = {
+        message: messageText.value.trim() || "No rescuer message provided",
+        location: finalLocation,
+        latitude: latitude,
+        longitude: longitude
+    };
+
+    try {
+        const response = await fetch(`/emergency/alert/${encodeURIComponent(patientId)}/`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            responseBox.style.color = "red";
+            responseBox.innerText = data.error || "Failed to send emergency SMS.";
+            return;
+        }
+
+        responseBox.style.color = "green";
+        responseBox.innerText = `Emergency SMS request sent to ${data.contacts_count} contact(s).`;
+    } catch (error) {
+        responseBox.style.color = "red";
+        responseBox.innerText = "Failed to send emergency SMS.";
+    } finally {
+        sendBtn.disabled = false;
     }
 }
-</script>
 
+recordBtn.addEventListener("click", startSpeechRecognition);
+sendBtn.addEventListener("click", sendEmergencyAlert);
+
+loadPatientDetailsIfNeeded();
+requestLocation();
+</script>
 </body>
 </html>

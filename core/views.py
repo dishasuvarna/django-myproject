@@ -523,10 +523,42 @@ def patient_form(request):
 
 
 
-@login_required
+# @login_required
 def scan_qr(request):
-    return render(request, 'scan.html')
+      from urllib.parse import parse_qs, urlparse
 
+      raw_patient_id = (
+          request.GET.get("patient_id") or
+          request.GET.get("id") or
+          request.GET.get("patient") or
+          ""
+      )
+      patient_id = raw_patient_id.strip()
+
+      if "?" in patient_id:
+          parsed_query = parse_qs(urlparse(patient_id).query)
+          patient_id = (
+              parsed_query.get("patient_id", [""])[0] or
+              parsed_query.get("id", [""])[0] or
+              patient_id
+          )
+
+      patient_id = patient_id.strip().strip("/")
+      patient = None
+      error = ""
+
+      if patient_id:
+          patient = Patient.objects.filter(patient_id__iexact=patient_id).first()
+          if patient:
+              patient_id = patient.patient_id
+          if not patient:
+              error = "Patient details not found"
+
+      return render(request, 'scan.html', {
+          "patient_id": patient_id,
+          "patient": patient,
+          "patient_error": error
+      })
 
 
 from django.contrib.auth import logout
@@ -871,16 +903,22 @@ def view_prescriptions(request, patient_id):
 # QR FETCH (API)
 # -------------------------
 def get_patient(request, patient_id):
+      patient = Patient.objects.filter(patient_id=patient_id).first()
 
-    patient = Patient.objects.get(patient_id=patient_id)
+      if not patient:
+          return JsonResponse({"error": "Patient not found"},
+          status=404)
 
-    return JsonResponse({
-        "name": patient.name,
-        "blood_group": patient.blood_group,
-        "phone": patient.phone,
-        "allergies": patient.allergies,
-        "emergency_contact": patient.emergency_contact
-    })
+      return JsonResponse({
+          "patient_id": patient.patient_id,
+          "name": patient.name,
+          "age": patient.age,
+          "gender": patient.gender,
+          "blood_group": patient.blood_group,
+          "phone": patient.phone,
+          "allergies": patient.allergies,
+          "emergency_contact": patient.emergency_contact
+      })
 
 
 
