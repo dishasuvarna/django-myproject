@@ -1,16 +1,61 @@
+# from pathlib import Path
+# import os
+
+
+# BASE_DIR = Path(__file__).resolve().parent.parent
+
+
+# def _load_env_file(env_path):
+#     if not env_path.exists():
+#         return
+
+#     for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+#         line = raw_line.strip()
+#         if not line or line.startswith("#") or "=" not in line:
+#             continue
+
+#         key, value = line.split("=", 1)
+#         key = key.strip()
+#         value = value.strip().strip('"').strip("'")
+
+#         if key and key not in os.environ:
+#             os.environ[key] = value
+
+
+# _load_env_file(BASE_DIR / ".env")
+
+# TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+# TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+# TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+
+from pathlib import Path
 import os
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+def load_env_file():
+    env_file = BASE_DIR / ".env"
+
+    if not env_file.exists():
+        return
+
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+
+        # Corrected: combined the condition into one line or use parentheses
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip())
+
+load_env_file()
 
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
 # SECRET_KEY = os.getenv("SECRET_KEY")
-
-
-
-from pathlib import Path
-  
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 SECRET_KEY = 'django-insecure-xxxx'  
@@ -86,7 +131,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital_db',
         'USER': 'root',
-        'PASSWORD': '*****@suvarna',
+        'PASSWORD': '28756@suvarna',
         'HOST': 'localhost',
         'PORT': '3306',
     }

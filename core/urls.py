@@ -12,6 +12,7 @@ urlpatterns = [
     path('my-prescriptions/', my_prescriptions, name='my_prescriptions'),
     path('logout/', logout_view, name='logout'),
     path('qr-page/', views.qr_page, name='qr_page'),
+    path('scan-qr/', views.scan_qr, name='scan_qr'),
     
 
     # 👨‍⚕️ Doctor
