@@ -1,0 +1,29 @@
+<form id="verifyForm" onsubmit="return false;">
+    {% csrf_token %}
+    <h3>Enter Emergency Code</h3>
+    <input type="text" id="emergencyCode" placeholder="Enter code here" required>
+    <button type="button" onclick="verifyAndRedirect()">Verify Code</button>
+</form>
+
+<script>
+async function verifyAndRedirect() {
+    const code = document.getElementById("emergencyCode").value;
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value; // Gets the token from the form
+
+    const response = await fetch("{% url 'verify_emergency_code' %}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken 
+        },
+        body: JSON.stringify({ "code": code }) // This must match the key 'code' in views.py
+    });
+
+    const data = await response.json();
+    if (data.status === "success") {
+        window.location.href = `/scan/?patient_id=${data.patient_id}`;
+    } else {
+        alert("Invalid code. Please try again.");
+    }
+}
+</script>

@@ -1,4 +1,6 @@
 import json
+
+import traceback
 import requests
 from datetime import datetime
 from rest_framework.decorators import api_view
@@ -7,6 +9,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from core.models import Patient
+
 
 # --- 1. HELPER FUNCTION ---
 def _get_readable_location(latitude, longitude):
@@ -109,3 +112,40 @@ def scan_qr_page(request):
 
 def send_sms(number, message):
     print(f"SMS sent to {number}:\n{message}")
+
+
+def verify_emergency_code_page(request):
+    return render(request, 'verify.html')
+
+
+def verify_emergency_code(request):
+    if request.method == "POST":
+        try:
+            # Parse the JSON body
+            data = json.loads(request.body)
+            entered_code = data.get("code")
+            
+            # Check if code was provided
+            if not entered_code:
+                return JsonResponse({"status": "error", "message": "Code is required"}, status=400)
+            
+            # Security Check: Does this specific code exist?
+            # Note: Ensure 'patient_code' is the exact field name in your Patient model
+            patient = Patient.objects.get(patient_code=entered_code)
+            
+            # If found, return success and the patient_id
+            return JsonResponse({
+                "status": "success", 
+                "patient_id": patient.patient_id
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({"status": "error", "message": "Invalid JSON data"}, status=400)
+        except Patient.DoesNotExist:
+            return JsonResponse({"status": "error", "message": "Invalid emergency code"}, status=404)
+        except Exception:
+            # Print the actual error to your terminal for debugging
+            traceback.print_exc()
+            return JsonResponse({"status": "error", "message": "Internal server error"}, status=500)
+            
+    return JsonResponse({"status": "error", "message": "Method not allowed"}, status=405)
