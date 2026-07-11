@@ -880,12 +880,14 @@ def upload_report(request, patient_id):
 
 
 
-
+from core.utils.pdf_processor import extract_text_from_pdf
 
 # view-prescriptions for doctor
 
 @login_required
 def view_prescriptions(request, patient_id):
+
+    text = extract_text_from_pdf("DISHA G Certificate.pdf")
 
     profile = Profile.objects.get(user=request.user)
 
