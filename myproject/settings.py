@@ -28,11 +28,14 @@
 # TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 # TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
-from pathlib import Path
 import os
+from pathlib import Path
+# from dotenv import load_dotenv
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# load_dotenv(dotenv_path=BASE_DIR / ".env")
 def load_env_file():
     env_file = BASE_DIR / ".env"
 
@@ -54,6 +57,7 @@ load_env_file()
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+# TWILIO_MESSAGING_SERVICE_SID = os.getenv("TWILIO_MESSAGING_SERVICE_SID")
 
 # SECRET_KEY = os.getenv("SECRET_KEY")
 
@@ -62,7 +66,7 @@ SECRET_KEY = 'django-insecure-xxxx'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1", "localhost", "192.168.1.5"]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.1.5', '0.0.0.0']
 
 
 # -------------------------------
@@ -131,7 +135,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital_db',
         'USER': 'root',
-        'PASSWORD': '28756@suvarna',
+        'PASSWORD': '*****@suvarna',
         'HOST': 'localhost',
         'PORT': '3306',
     }

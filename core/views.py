@@ -9,6 +9,7 @@ twilio_number = ""
 
 
 
+
 client = Client(account_sid, auth_token)
 
 
@@ -154,6 +155,7 @@ def register(request):
             }
 
             send_otp(phone, otp)
+            print("OTP SENT TO:", phone)
             print("REGISTER OTP:", otp)
 
             return render(request, 'register.html', {
@@ -335,6 +337,7 @@ def patient_form(request):
               send_otp(emergency_contact, otp)
 
               print("OTP SENT TO:", emergency_contact)
+              print("REGISTER OTP:", otp)
 
               return render(request, 'patient_form.html', {
                   'phone': phone,

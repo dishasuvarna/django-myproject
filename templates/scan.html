@@ -104,6 +104,19 @@
             margin-top: 14px;
             font-weight: bold;
         }
+    /* #locationStatus a {
+        display: inline-block;
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+        margin-top: 5px;
+        font-size: 0.9em;
+    }
+    #locationStatus a:hover {
+        background-color: #0056b3;
+    } */
     </style>
 </head>
 
@@ -168,140 +181,6 @@
 </div>
 
 <!-- <script>
-let latitude = null;
-let longitude = null;
-
-const serverPatientId = "{{ patient.patient_id|default:patient_id|default:''|escapejs }}";
-const hasServerPatient = {% if patient %}true{% else %}false{% endif %};
-const locationStatus = document.getElementById("locationStatus");
-const speechStatus = document.getElementById("speechStatus");
-const messageText = document.getElementById("messageText");
-const recordBtn = document.getElementById("recordBtn");
-const sendBtn = document.getElementById("sendBtn");
-const responseBox = document.getElementById("response");
-const patientDetails = document.getElementById("patientDetails");
-
-// ... [Keep your getPatientId, escapeHtml, and loadPatientDetailsIfNeeded functions exactly as they were] ...
-
-function getPatientId() {
-    if (serverPatientId) return serverPatientId;
-    const params = new URLSearchParams(window.location.search);
-    return params.get("patient_id") || params.get("id") || params.get("patient") || "";
-}
-
-function escapeHtml(value) {
-    return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
-
-async function loadPatientDetailsIfNeeded() {
-    if (hasServerPatient) return;
-    const patientId = getPatientId();
-    if (!patientId) { sendBtn.disabled = true; return; }
-    try {
-        const response = await fetch(`/get-patient/${encodeURIComponent(patientId)}/`);
-        const data = await response.json();
-        if (!response.ok) { patientDetails.innerHTML = `<strong>${escapeHtml(data.error || "Patient details not found")}</strong>`; sendBtn.disabled = true; return; }
-        patientDetails.innerHTML = `<h3>Patient Basic Details</h3>
-            <div class="detail-row"><div class="detail-label">Patient ID</div><div>${escapeHtml(data.patient_id)}</div></div>
-            <div class="detail-row"><div class="detail-label">Name</div><div>${escapeHtml(data.name)}</div></div>
-            <div class="detail-row"><div class="detail-label">Age</div><div>${escapeHtml(data.age)}</div></div>
-            <div class="detail-row"><div class="detail-label">Gender</div><div>${escapeHtml(data.gender)}</div></div>
-            <div class="detail-row"><div class="detail-label">Blood Group</div><div>${escapeHtml(data.blood_group)}</div></div>
-            <div class="detail-row"><div class="detail-label">Allergies</div><div>${escapeHtml(data.allergies || "None")}</div></div>
-            <div class="detail-row"><div class="detail-label">Phone</div><div>${escapeHtml(data.phone)}</div></div>
-            <div class="detail-row"><div class="detail-label">Emergency Contact</div><div>${escapeHtml(data.emergency_contact)}</div></div>`;
-    } catch (error) { patientDetails.innerHTML = "<strong>Failed to load patient details</strong>"; sendBtn.disabled = true; }
-}
-
-function requestLocation() {
-    if (!navigator.geolocation) {
-        locationStatus.innerText = "Location not supported.";
-        return;
-    }
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            latitude = position.coords.latitude;
-            longitude = position.coords.longitude;
-            locationStatus.innerText = "Location locked successfully.";
-        },
-        () => { locationStatus.innerText = "Location access denied."; },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-    );
-
-//     navigator.geolocation.getCurrentPosition(
-//     (position) => {
-//         const lat = position.coords.latitude;
-//         const lon = position.coords.longitude;
-        
-//         // Send these exact coordinates to your Django scan_qr view
-//         fetch('/scan/', {
-//             method: 'POST',
-//             headers: { 'Content-Type': 'application/json' },
-//             body: JSON.stringify({ 
-//                 patient_id: '{{ patient.patient_id }}', 
-//                 lat: lat, 
-//                 lon: lon 
-//             })
-//         });
-//     },
-//     (error) => console.error("Error getting location:", error),
-//     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 } // Force fresh GPS data
-// );
-}
-
-function startSpeechRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) { speechStatus.innerText = "Speech not supported."; return; }
-    const recognition = new SpeechRecognition();
-    recognition.lang = "en-IN";
-    recognition.onresult = (event) => { messageText.value = event.results[0][0].transcript; };
-    recognition.start();
-}
-
-async function sendEmergencyAlert() {
-    const patientId = getPatientId();
-    if (!patientId) return;
-
-    sendBtn.disabled = true;
-    responseBox.innerText = "Sending emergency SMS...";
-
-    // OpenStreetMap URL format for exact location pin
-    const mapLink = latitude && longitude 
-        ? `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=18/${latitude}/${longitude}`
-        : "Location not available";
-
-    const payload = {
-        message: messageText.value.trim() || "Emergency! Assistance required.",
-        location: mapLink, 
-        latitude: latitude,
-        longitude: longitude
-    };
-
-    try {
-        const response = await fetch(`/emergency/alert/${encodeURIComponent(patientId)}/`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token }}" },
-            body: JSON.stringify(payload)
-        });
-        const data = await response.json();
-        responseBox.style.color = response.ok ? "green" : "red";
-        responseBox.innerText = response.ok ? "Emergency SMS sent successfully!" : "Failed to send SMS.";
-    } catch (error) {
-        responseBox.style.color = "red";
-        responseBox.innerText = "Error connecting to server.";
-    } finally {
-        sendBtn.disabled = false;
-    }
-}
-
-recordBtn.addEventListener("click", startSpeechRecognition);
-sendBtn.addEventListener("click", sendEmergencyAlert);
-loadPatientDetailsIfNeeded();
-requestLocation();
-</script> -->
-
-
-<script>
 let latitude = null;
 let longitude = null;
 
@@ -391,6 +270,196 @@ document.getElementById("recordBtn").addEventListener("click", () => {
 sendBtn.addEventListener("click", sendEmergencyAlert);
 
 // Initialize
+requestLocation();
+</script> -->
+
+
+
+<!-- <script>
+let latitude = null;
+let longitude = null;
+
+const serverPatientId = "{{ patient.patient_id|default:patient_id|default:''|escapejs }}";
+const sendBtn = document.getElementById("sendBtn");
+const locationStatus = document.getElementById("locationStatus");
+const responseBox = document.getElementById("response");
+const messageText = document.getElementById("messageText");
+
+// Initialize: Disable button until location is found
+sendBtn.disabled = true;
+
+function requestLocation() {
+    if (!navigator.geolocation) {
+        locationStatus.innerText = "Location not supported by browser.";
+        return;
+    }
+    locationStatus.innerText = "Locking exact GPS position...";
+    
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            latitude = position.coords.latitude;
+            longitude = position.coords.longitude;
+            locationStatus.innerText = "Location Locked: Precise";
+            sendBtn.disabled = false; // Enable button only after GPS locks
+        },
+        (error) => {
+            locationStatus.innerText = "Error: Please enable Location/GPS access.";
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+}
+
+async function sendEmergencyAlert() {
+    const patientId = serverPatientId || new URLSearchParams(window.location.search).get("patient_id");
+    if (!patientId || !latitude || !longitude) {
+        alert("Waiting for GPS lock...");
+        return;
+    }
+
+    sendBtn.disabled = true;
+    responseBox.innerText = "Sending emergency signal...";
+
+    // This is the universal link that opens in any map app without installation
+    const mapLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+
+    const payload = {
+        message: messageText.value.trim() || "Emergency! Assistance required.",
+        latitude: latitude,
+        longitude: longitude,
+        location: "Coordinates provided" // This triggers your backend logic
+    };
+
+    try {
+        const response = await fetch(`/emergency/alert/${encodeURIComponent(patientId)}/`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "X-CSRFToken": "{{ csrf_token }}" 
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        if (response.ok) {
+            responseBox.style.color = "green";
+            responseBox.innerText = "Emergency SMS sent successfully!";
+        } else {
+            throw new Error("Server error");
+        }
+    } catch (error) {
+        responseBox.style.color = "red";
+        responseBox.innerText = "Failed to connect to server.";
+        sendBtn.disabled = false;
+    }
+}
+
+// Event Listeners
+document.getElementById("recordBtn").addEventListener("click", () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.onresult = (e) => { messageText.value = e.results[0][0].transcript; };
+    recognition.start();
+});
+
+sendBtn.addEventListener("click", sendEmergencyAlert);
+
+// Initialize
+requestLocation();
+</script> -->
+
+
+
+<script>
+let latitude = null;
+let longitude = null;
+
+const serverPatientId = "{{ patient.patient_id|default:patient_id|default:''|escapejs }}";
+const sendBtn = document.getElementById("sendBtn");
+const locationStatus = document.getElementById("locationStatus");
+const responseBox = document.getElementById("response");
+const messageText = document.getElementById("messageText");
+
+// CHANGED: Initialize button as enabled so it works immediately
+sendBtn.disabled = false; 
+
+function requestLocation() {
+    if (!navigator.geolocation) {
+        locationStatus.innerText = "Location not supported by browser.";
+        return;
+    }
+    locationStatus.innerText = "Locking exact GPS position...";
+    
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            latitude = position.coords.latitude;
+            longitude = position.coords.longitude;
+            locationStatus.innerText = "Location Locked: Precise";
+            // We don't enable the button here because it's already enabled
+        },
+        (error) => {
+            locationStatus.innerText = "Location access denied.";
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+}
+
+async function sendEmergencyAlert() {
+    const patientId = serverPatientId || new URLSearchParams(window.location.search).get("patient_id");
+    
+    // CHANGED: Removed the check that forced latitude and longitude to exist
+    if (!patientId) {
+        alert("Patient ID missing.");
+        return;
+    }
+
+    sendBtn.disabled = true;
+    responseBox.innerText = "Sending emergency signal...";
+
+    // This stays exactly as it was in your original code
+    const mapLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+
+    const payload = {
+        message: messageText.value.trim() || "Emergency! Assistance required.",
+        latitude: latitude,
+        longitude: longitude,
+        location: "Coordinates provided" 
+    };
+
+    try {
+        const response = await fetch(`/emergency/alert/${encodeURIComponent(patientId)}/`, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "X-CSRFToken": "{{ csrf_token }}" 
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        if (response.ok) {
+            responseBox.style.color = "green";
+            responseBox.innerText = "Emergency SMS sent successfully!";
+        } else {
+            throw new Error("Server error");
+        }
+    } catch (error) {
+        responseBox.style.color = "red";
+        responseBox.innerText = "Failed to connect to server.";
+        sendBtn.disabled = false;
+    }
+}
+
+document.getElementById("recordBtn").addEventListener("click", () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+    const recognition = new SpeechRecognition();
+    recognition.lang = "en-IN";
+    recognition.onresult = (e) => { messageText.value = e.results[0][0].transcript; };
+    recognition.start();
+});
+
+sendBtn.addEventListener("click", sendEmergencyAlert);
+
 requestLocation();
 </script>
 </body>
