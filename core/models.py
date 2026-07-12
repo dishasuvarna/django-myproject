@@ -148,6 +148,16 @@ class MedicalReport(models.Model):
           ('other', 'Other'),
       ]
 
+      EXTRACTION_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('success', 'Success'),
+        ('needs_ocr', 'Needs OCR (scanned PDF)'),
+        ('low_confidence', 'Low Confidence'),
+        ('no_text', 'No Text Detected'),
+        ('unsupported', 'Unsupported File Type'),
+        ('error', 'Extraction Error'),
+    ]
+
       patient = models.ForeignKey(Patient, on_delete=models.CASCADE)
       doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
 
@@ -155,8 +165,28 @@ class MedicalReport(models.Model):
       title = models.CharField(max_length=100)
       file = models.FileField(upload_to='medical_reports/')
 
+      # --- NEW FIELDS ---
+      extracted_text = models.TextField(blank=True, null=True)
+      ai_summary = models.TextField(blank=True, null=True)
+      extraction_status = models.CharField(
+        max_length=20, choices=EXTRACTION_STATUS_CHOICES, default='pending'
+    )
+      ocr_confidence = models.FloatField(blank=True, null=True)
+      # --- END NEW FIELDS ---
+
       uploaded_at = models.DateTimeField(auto_now_add=True)
       updated_at = models.DateTimeField(auto_now=True)
+
+      def get_extracted_text(self):
+        from core.encryption_service import EncryptionService
+        return EncryptionService.decrypt(self.extracted_text) if self.extracted_text else ''
+
+      def get_ai_summary(self):
+        from core.encryption_service import EncryptionService
+        return EncryptionService.decrypt(self.ai_summary) if self.ai_summary else ''
+
+      def __str__(self):
+        return f"{self.patient.name} - {self.title}"
 
       def __str__(self):
           return f"{self.patient.name} - {self.title}"

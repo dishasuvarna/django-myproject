@@ -94,6 +94,22 @@
                     <p class="report-meta">
                         {{ report.uploaded_at|date:"d M Y" }} at {{ report.uploaded_at|date:"h:i A" }}
                     </p>
+
+                    <!-- NEW: extraction status + text -->
+                    {% if report.extraction_status == 'success' %}
+                        <p class="report-meta" style="color:#0f766e; font-weight:700;">✅ Text extracted</p>
+                        <p class="report-meta" style="white-space:pre-line;">{{ report.get_extracted_text|truncatewords:40 }}</p>
+                    {% elif report.extraction_status == 'low_confidence' %}
+                        <p class="report-meta" style="color:#b45309; font-weight:700;">⚠️ Low confidence OCR ({{ report.ocr_confidence }}%) — verify manually</p>
+                        <p class="report-meta" style="white-space:pre-line;">{{ report.get_extracted_text|truncatewords:40 }}</p>
+                    {% elif report.extraction_status == 'needs_ocr' %}
+                        <p class="report-meta" style="color:#b45309; font-weight:700;">⚠️ Scanned PDF — OCR needed</p>
+                    {% elif report.extraction_status == 'no_text' %}
+                        <p class="report-meta" style="color:#6b7280;">No text detected in this file</p>
+                    {% elif report.extraction_status == 'error' %}
+                        <p class="report-meta" style="color:#b91c1c;">❌ Extraction failed</p>
+                    {% endif %}
+                    <!-- END NEW -->
                 </div>
 
                 <a class="report-view" href="{{ report.file.url }}" target="_blank" rel="noopener">View</a>

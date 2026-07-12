@@ -859,13 +859,23 @@ def upload_report(request, patient_id):
                   'error': 'All fields are required'
               })
 
-          MedicalService.uploadReport({
+          report = MedicalService.uploadReport({
               'patient': patient,
               'doctor': doctor,
               'report_type': report_type,
               'title': title,
               'file': file
           })
+
+
+          
+          try:
+              from core.services.extraction_service import ExtractionService
+              ExtractionService.process_report(report)
+          except Exception as e:
+              print("EXTRACTION ERROR:", e)
+
+         
 
           return redirect('view_prescriptions', patient_id=patient.patient_id)
     return render(request, 'upload_report.html', {
