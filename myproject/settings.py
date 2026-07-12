@@ -135,7 +135,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital_db',
         'USER': 'root',
-        'PASSWORD': '28756@suvarna',
+        'PASSWORD': '*****@suvarna',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -194,6 +194,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 
 LOGIN_REDIRECT_URL = 'patient_form'
+
+
+
 
 
 
