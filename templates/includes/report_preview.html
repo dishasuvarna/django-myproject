@@ -110,6 +110,12 @@
                         <p class="report-meta" style="color:#b91c1c;">❌ Extraction failed</p>
                     {% endif %}
                     <!-- END NEW -->
+                    {% if report.get_ai_summary %}
+                        <p class="report-meta" style="margin-top:6px; font-weight:700; color:#1f5fbf;">🧠 AI Summary</p>
+                        <p class="report-meta" style="white-space:pre-line;">{{ report.get_ai_summary }}</p>
+                        <p class="report-meta" style="font-style:italic; color:#9ca3af;">AI-generated — verify against original document.</p>
+                    {% endif %}
+
                 </div>
 
                 <a class="report-view" href="{{ report.file.url }}" target="_blank" rel="noopener">View</a>
