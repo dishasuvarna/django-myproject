@@ -4,7 +4,7 @@
   <p style="color:red;">{{ error }}</p>
   {% endif %}
 
-  <form method="POST" enctype="multipart/form-data">
+  <form method="POST" enctype="multipart/form-data" id="upload-report-form">
       {% csrf_token %}
 
       <label>Report Type:</label>
@@ -27,9 +27,25 @@
 
       <br><br>
 
-      <button type="submit">Upload Report</button>
+      <button type="submit" id="upload-submit-btn">Upload Report</button>
   </form>
+
+  <!-- NEW: loading indicator, hidden by default -->
+  <div id="upload-loading" style="display:none; margin-top:14px; padding:12px; background:#eef5ff; border:1px solid #b8d4f5; border-radius:6px; color:#1f5fbf; font-weight:600;">
+      ⏳ Uploading and analyzing report... this may take a few seconds. Please don't close or refresh this page.
+  </div>
+  <!-- END NEW -->
 
   <br>
 
-  <a href="/doctor-dashboard/">Back</a>
+  <a href="/doctor-dashboard/" id="back-link">Back</a>
+
+  <!-- NEW: script to show loading state on submit -->
+  <script>
+      document.getElementById('upload-report-form').addEventListener('submit', function () {
+          document.getElementById('upload-submit-btn').disabled = true;
+          document.getElementById('upload-submit-btn').textContent = 'Uploading...';
+          document.getElementById('upload-loading').style.display = 'block';
+      });
+  </script>
+  <!-- END NEW -->
