@@ -836,6 +836,7 @@ def my_prescriptions(request):
     })
 
 #medical_report
+
 @login_required
 def upload_report(request, patient_id):
     profile = Profile.objects.get(user=request.user)
@@ -872,8 +873,11 @@ def upload_report(request, patient_id):
           try:
               from core.services.extraction_service import ExtractionService
               ExtractionService.process_report(report)
+
           except Exception as e:
-              print("EXTRACTION ERROR:", e)
+              from core.utils.log_scrubber import scrub_for_log
+              print("EXTRACTION ERROR:", scrub_for_log(e))
+            #   print(f"DEBUG: Error caught: {scrub_for_log(e)}", flush=True)
 
          
 
