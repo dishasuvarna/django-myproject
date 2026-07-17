@@ -30,15 +30,16 @@ class MedicalService:
         doctor = _resolve_doctor(data)
         medicines = _required_text(data, "medicines")
         notes = _required_text(data, "notes")
+        active_until = data.get("active_until")  # NEW
 
         prescription = Prescription.objects.create(
             patient=patient,
             doctor=doctor,
             medicines=medicines,
             notes=notes,
+            active_until=active_until,  # NEW
         )
         _log_audit_action(doctor, "create", prescription.id)
-
 
         return prescription
 

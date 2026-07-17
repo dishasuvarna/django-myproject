@@ -16,6 +16,15 @@
 {% csrf_token %}
 <textarea name="medicines" placeholder="Enter medicines" required>{% if prescription %}{{ prescription.medicines }}{% endif %}</textarea><br>
 <textarea name="notes" placeholder="Enter notes" required>{% if prescription %}{{ prescription.notes }}{% endif %}</textarea><br>
+
+<label for="active_until">Active Until (optional):</label><br>
+<input
+    type="date"
+    id="active_until"
+    name="active_until"
+    value="{% if prescription %}{{ prescription.active_until|date:'Y-m-d' }}{% endif %}"
+><br><br>
+
 <button type="submit">Save</button>
 </form>
 

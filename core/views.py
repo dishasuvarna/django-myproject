@@ -745,6 +745,7 @@ def add_prescription(request, patient_id):
     if request.method == "POST":
         medicines = request.POST.get('medicines', '').strip()
         notes = request.POST.get('notes', '').strip()
+        active_until = request.POST.get('active_until') or None  
 
         if not medicines or not notes:
             return render(request, 'add_prescription.html', {
@@ -756,7 +757,8 @@ def add_prescription(request, patient_id):
             'patient': patient,
             'doctor': doctor,
             'medicines': medicines,
-            'notes': notes
+            'notes': notes,
+            'active_until': active_until
         })
         return redirect('view_prescriptions', patient_id=patient.patient_id)
 

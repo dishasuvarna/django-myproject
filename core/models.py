@@ -131,11 +131,22 @@ class Prescription(models.Model):
     medicines = models.TextField()
     notes = models.TextField()
 
+    active_until = models.DateField(null=True, blank=True) 
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+
+    @property
+    def is_expired(self):
+        if not self.active_until:
+            return False
+        from django.utils import timezone
+        return timezone.localdate() > self.active_until
+
     def __str__(self):
         return f"{self.patient.name} - {self.doctor.name}"
+    
     
 
 
