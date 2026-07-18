@@ -104,6 +104,11 @@
             margin-top: 14px;
             font-weight: bold;
         }
+        .blur-content {
+            filter: blur(8px);
+            pointer-events: none; 
+            transition: filter 0.3s ease;
+}
     /* #locationStatus a {
         display: inline-block;
         padding: 5px 10px;
@@ -124,7 +129,7 @@
 <div class="page">
     <div class="panel">
         <h2>Emergency Alert</h2>
-
+    <div id="patient-container" class="blur-content">
         <div id="patientDetails" class="patient-card">
             {% if patient %}
                 <h3>Patient Basic Details</h3>
@@ -167,6 +172,7 @@
                 Open this page from the patient's QR code or use /scan/?patient_id=P3.
             {% endif %}
         </div>
+    </div>
 
         <div id="locationStatus" class="status">Checking location permission...</div>
         <div id="speechStatus" class="status">Voice message is optional.</div>
@@ -439,6 +445,11 @@ async function sendEmergencyAlert() {
         if (response.ok) {
             responseBox.style.color = "green";
             responseBox.innerText = "Emergency SMS sent successfully!";
+
+            document.getElementById("patient-container").classList.remove("blur-content");
+            document.getElementById("patient-container").style.pointerEvents = "auto";
+
+            
         } else {
             throw new Error("Server error");
         }
