@@ -13,6 +13,7 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('qr-page/', views.qr_page, name='qr_page'),
     path('scan-qr/', views.scan_qr, name='scan_qr'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
     
 
     # 👨‍⚕️ Doctor

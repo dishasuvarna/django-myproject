@@ -813,3 +813,116 @@ def qr_page(request):
         'qr': patient.qr_code.url,
         'patient': patient
     })
+
+
+
+
+def mask_phone(phone):
+    if not phone or len(phone) <= 4:
+        return phone
+    return "*" * (len(phone) - 4) + phone[-4:]
+
+
+def forgot_password(request):
+    if request.method == "POST":
+        action = request.POST.get('action')
+
+        # STEP 1: find account by username
+        if action == 'find_user':
+            username = request.POST.get('username', '').strip()
+            try:
+                user = User.objects.get(username=username)
+                profile = Profile.objects.get(user=user)
+            except (User.DoesNotExist, Profile.DoesNotExist):
+                return render(request, 'forgot_password.html', {
+                    'step': 'find_user',
+                    'error': 'No account found with that username'
+                })
+
+            if not profile.phone:
+                return render(request, 'forgot_password.html', {
+                    'step': 'find_user',
+                    'error': 'No phone number on file for this account'
+                })
+
+            request.session['reset_data'] = {'username': username}
+            return render(request, 'forgot_password.html', {
+                'step': 'confirm_send',
+                'masked_phone': mask_phone(profile.phone),
+            })
+
+        # STEP 2: send OTP
+        elif action == 'send_otp':
+            data = request.session.get('reset_data')
+            if not data:
+                return redirect('forgot_password')
+
+            try:
+                user = User.objects.get(username=data['username'])
+                profile = Profile.objects.get(user=user)
+            except (User.DoesNotExist, Profile.DoesNotExist):
+                return redirect('forgot_password')
+
+            otp = generate_otp()
+            data['otp'] = otp
+            request.session['reset_data'] = data
+
+            send_otp(profile.phone, otp)
+            print("PASSWORD RESET OTP SENT TO:", profile.phone)
+            print("RESET OTP:", otp)
+
+            return render(request, 'forgot_password.html', {
+                'step': 'enter_otp',
+                'masked_phone': mask_phone(profile.phone),
+            })
+
+        # STEP 3: verify OTP
+        elif action == 'verify_otp':
+            data = request.session.get('reset_data')
+            if not data or 'otp' not in data:
+                return redirect('forgot_password')
+
+            entered_otp = request.POST.get('otp', '').strip()
+            if str(entered_otp) != str(data['otp']):
+                return render(request, 'forgot_password.html', {
+                    'step': 'enter_otp',
+                    'error': 'Invalid OTP'
+                })
+
+            data['otp_verified'] = True
+            request.session['reset_data'] = data
+            return render(request, 'forgot_password.html', {'step': 'new_password'})
+
+        # STEP 4: set new password
+        elif action == 'reset_password':
+            data = request.session.get('reset_data')
+            if not data or not data.get('otp_verified'):
+                return redirect('forgot_password')
+
+            new_password = request.POST.get('password')
+            confirm_password = request.POST.get('confirm_password')
+
+            if new_password != confirm_password:
+                return render(request, 'forgot_password.html', {
+                    'step': 'new_password',
+                    'error': 'Passwords do not match'
+                })
+
+            if not is_strong_password(new_password):
+                return render(request, 'forgot_password.html', {
+                    'step': 'new_password',
+                    'error': 'Password must be 8+ characters with uppercase, lowercase, digit, and special character'
+                })
+
+            try:
+                user = User.objects.get(username=data['username'])
+            except User.DoesNotExist:
+                return redirect('forgot_password')
+
+            user.set_password(new_password)
+            user.save()
+
+            del request.session['reset_data']
+            return render(request, 'forgot_password.html', {'step': 'done'})
+
+    return render(request, 'forgot_password.html', {'step': 'find_user'})
