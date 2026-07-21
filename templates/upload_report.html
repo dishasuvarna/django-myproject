@@ -94,6 +94,17 @@
             min-height: 44px;
         }
 
+        select.form-control {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
         .form-control:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(31, 95, 191, 0.12);
@@ -192,7 +203,7 @@
             <h1>Upload Report for {{ patient.name }}</h1>
             <p>Add medical imaging, test results, or diagnostic reports.</p>
         </div>
-        <a class="button secondary" href="{% url 'doctor_dashboard' %}" id="back-link">Back to Dashboard</a>
+        <a class="button secondary" href="javascript:history.back()" id="back-link">Back to Dashboard</a>
     </header>
 
     {% if error %}
@@ -228,7 +239,7 @@
 
             <div class="actions-row">
                 <button class="button" type="submit" id="upload-submit-btn">Upload Report</button>
-                <a class="button secondary" href="{% url 'doctor_dashboard' %}">Cancel</a>
+                <a class="button secondary" href="javascript:history.back()">Cancel</a>
             </div>
         </form>
 
