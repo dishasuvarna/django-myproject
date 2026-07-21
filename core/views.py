@@ -172,23 +172,32 @@ def register(request):
 
             if not data:
                 return render(request, 'register.html', {'error': 'Send OTP first'})
+            
+            saved_username = data.get('username', '')
+            saved_phone = data.get('phone', '')
+            saved_password = data.get('password', '')
 
             if not entered_otp:
                 return render(request, 'register.html', {
                     'error': 'Enter OTP',
-                    'otp_sent': True
+                    'otp_sent': True,
+                    'username': saved_username,
+                    'phone': saved_phone,
+                    'password': saved_password
                 })
 
             if str(entered_otp) == str(data['otp']):
 
                 user = User.objects.create_user(
-                    username=data['username'],
-                    password=data['password']
+                    username=saved_username,
+                    password=saved_password
                 )
 
                 profile = Profile.objects.create(user=user, role='patient')
-                profile.phone = data['phone']
+                profile.phone = saved_phone
                 profile.save()
+
+                del request.session['reg_data']
 
                 # #code_new
                 # import random
@@ -202,7 +211,10 @@ def register(request):
 
             return render(request, 'register.html', {
                 'error': 'Invalid OTP',
-                'otp_sent': True
+                'otp_sent': True,
+                'username': saved_username,
+                'phone': saved_phone,
+                'password': saved_password
             })
 
     return render(request, 'register.html')
