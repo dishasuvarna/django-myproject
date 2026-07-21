@@ -452,7 +452,7 @@ from django.shortcuts import redirect
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('doctor_login')
 
 # -------------------------
 # DOCTOR LOGIN (STRICT)
@@ -491,13 +491,13 @@ def doctor_login(request):
 # -------------------------
 # DOCTOR DASHBOARD
 # -------------------------
-@login_required
+@login_required(login_url='doctor_login')
 def doctor_dashboard(request):
 
     #enuser only doctor access
     profile = Profile.objects.get(user=request.user)
     if profile.role != 'doctor':
-          return redirect('login')
+          return redirect('doctor_login')
 
     # search = request.GET.get('search')
     search = request.GET.get('search', '').strip()
@@ -530,7 +530,7 @@ def doctor_dashboard(request):
 # -------------------------
 # DOCTOR EDIT PATIENT
 # -------------------------
-@login_required
+@login_required(login_url='doctor_login')
 def doctor_edit_patient(request, patient_id):
 
     # 🔒 Ensure only doctor
@@ -573,7 +573,7 @@ def doctor_edit_patient(request, patient_id):
 # -------------------------
 # ADD PRESCRIPTION
 # -------------------------
-@login_required
+@login_required(login_url='doctor_login')
 def add_prescription(request, patient_id):
 
     
@@ -581,7 +581,7 @@ def add_prescription(request, patient_id):
 
     profile = Profile.objects.get(user=request.user)
     if profile.role != 'doctor':
-        return redirect('login')
+        return redirect('doctor_login')
 
     try:
         doctor = Doctor.objects.get(user=request.user)
@@ -620,11 +620,11 @@ def add_prescription(request, patient_id):
     return render(request, 'add_prescription.html', {'patient': patient})
 
 
-@login_required
+@login_required(login_url='doctor_login')
 def edit_prescription(request, prescription_id):
     profile = Profile.objects.get(user=request.user)
     if profile.role != 'doctor':
-        return redirect('login')
+        return redirect('doctor_login')
 
     doctor = get_object_or_404(Doctor, user=request.user)
     prescription = get_object_or_404(Prescription, id=prescription_id, doctor=doctor)
@@ -654,12 +654,12 @@ def edit_prescription(request, prescription_id):
 #View prescriptions for a patient
 
 
-# @login_required
+# @login_required(login_url='doctor_login')
 # def view_prescriptions(request, patient_id):
 
 #     profile = Profile.objects.get(user=request.user)
 #     if profile.role != 'doctor':
-#         return redirect('login')
+#         return redirect('doctor_login')
 
 #     patient = Patient.objects.get(patient_id=patient_id)
 #     prescriptions = Prescription.objects.filter(patient=patient)
@@ -694,11 +694,11 @@ def my_prescriptions(request):
 
 #medical_report
 
-@login_required
+@login_required(login_url='doctor_login')
 def upload_report(request, patient_id):
     profile = Profile.objects.get(user=request.user)
     if profile.role != 'doctor':
-        return redirect('login')
+        return redirect('doctor_login')
     try:
         doctor = Doctor.objects.get(user=request.user)
     except Doctor.DoesNotExist:
@@ -755,7 +755,7 @@ from core.utils.pdf_processor import extract_text_from_pdf
 
 # view-prescriptions for doctor
 
-@login_required
+@login_required(login_url='doctor_login')
 def view_prescriptions(request, patient_id):
 
     text = extract_text_from_pdf("DISHA G Certificate.pdf")
@@ -763,7 +763,7 @@ def view_prescriptions(request, patient_id):
     profile = Profile.objects.get(user=request.user)
 
     if profile.role != 'doctor':
-        return redirect('login')
+        return redirect('doctor_login')
     
     patient = get_object_or_404(Patient, patient_id=patient_id)
     records = MedicalService.getPatientRecords(patient.patient_id)
@@ -778,6 +778,7 @@ def view_prescriptions(request, patient_id):
 # -------------------------
 # QR FETCH (API)
 # -------------------------
+@login_required(login_url='doctor_login')
 def get_patient(request, patient_id):
       patient = Patient.objects.filter(patient_id=patient_id).first()
 
