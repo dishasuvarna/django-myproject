@@ -1,14 +1,235 @@
-<form method="POST">
-    {% csrf_token %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Patient {{ patient.name }}</title>
+    <style>
+        :root {
+            --bg: #f3f6fa;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #d6dee9;
+            --primary: #1f5fbf;
+            --primary-dark: #174a95;
+            --warning-bg: #fff7ed;
+            --warning: #9a3412;
+            --surface: #f8fafc;
+            --shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+        }
 
-    <input type="number" name="age" value="{{ patient.age }}">
-    <input type="text" name="gender" value="{{ patient.gender }}">
-    <input type="text" name="blood_group" value="{{ patient.blood_group }}">
-    <input type="text" name="allergies" value="{{ patient.allergies }}">
-    <input type="text" name="emergency_contact" value="{{ patient.emergency_contact }}">
+        * { box-sizing: border-box; }
 
-    <!-- phone readonly -->
-    <input type="text" value="{{ patient.phone }}" readonly>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
 
-    <button type="submit">Update</button>
-</form>
+        .page {
+            width: min(720px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 40px 0 48px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 18px;
+        }
+
+        .title-group h1 {
+            margin: 0;
+            font-size: 26px;
+            line-height: 1.2;
+        }
+
+        .title-group p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 15px;
+            background: #fff;
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 44px;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(31, 95, 191, 0.12);
+            outline: none;
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            align-items: center;
+        }
+
+        .button, button.button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 10px 18px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .button:hover, button.button:hover {
+            background: var(--primary-dark);
+        }
+
+        .button.secondary {
+            background: #fff;
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .button.secondary:hover {
+            background: #f9fafb;
+        }
+
+        .error-state {
+            margin-bottom: 20px;
+            border: 1px solid #fed7aa;
+            background: var(--warning-bg);
+            color: var(--warning);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 14px;
+        }
+
+        .loading-state {
+            display: none;
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: #eef5ff;
+            border: 1px solid #b8d4f5;
+            border-radius: 6px;
+            color: #1f5fbf;
+            font-weight: 600;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<main class="page">
+    <header class="topbar">
+        <div class="title-group">
+            <h1>Edit Patient Details</h1>
+            <p>Update medical and emergency contact information for {{ patient.name }}.</p>
+        </div>
+        <a class="button secondary" href="{% url 'doctor_dashboard' %}?search={{ patient.patient_id }}">Back to Dashboard</a>
+    </header>
+
+    {% if error %}
+        <div class="error-state">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <form method="POST" id="edit-patient-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="age">Age</label>
+                <input class="form-control" type="number" id="age" name="age" value="{{ patient.age }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="gender">Gender</label>
+                <input class="form-control" type="text" id="gender" name="gender" value="{{ patient.gender }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="blood_group">Blood Group</label>
+                <input class="form-control" type="text" id="blood_group" name="blood_group" value="{{ patient.blood_group }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="allergies">Allergies</label>
+                <input class="form-control" type="text" id="allergies" name="allergies" value="{{ patient.allergies }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="emergency_contact">Emergency Contact</label>
+                <input class="form-control" type="text" id="emergency_contact" name="emergency_contact" value="{{ patient.emergency_contact }}" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="phone">Phone (Read-only)</label>
+                <input class="form-control" type="text" id="phone" value="{{ patient.phone }}" readonly style="background: var(--surface); color: var(--muted); cursor: not-allowed;">
+            </div>
+
+            <div class="actions-row">
+                <button class="button" type="submit" id="edit-submit-btn">Update</button>
+                <a class="button secondary" href="{% url 'doctor_dashboard' %}?search={{ patient.patient_id }}">Cancel</a>
+            </div>
+        </form>
+
+        <div class="loading-state" id="edit-loading">
+            ⏳ Updating patient records... please wait.
+        </div>
+    </div>
+</main>
+
+<script>
+    const editForm = document.getElementById('edit-patient-form');
+    const editBtn = document.getElementById('edit-submit-btn');
+    const editLoading = document.getElementById('edit-loading');
+
+    editForm.addEventListener('submit', function () {
+        editBtn.disabled = true;
+        editBtn.textContent = 'Updating...';
+        editLoading.style.display = 'block';
+    });
+</script>
+</body>
+</html>
