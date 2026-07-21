@@ -1,51 +1,254 @@
-<h2>Upload Report for {{ patient.name }}</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Report for {{ patient.name }} - Doctor Dashboard</title>
+    <style>
+        :root {
+            --bg: #f3f6fa;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #d6dee9;
+            --soft-border: #edf1f6;
+            --primary: #1f5fbf;
+            --primary-dark: #174a95;
+            --success: #0f766e;
+            --warning-bg: #fff7ed;
+            --warning: #9a3412;
+            --surface: #f8fafc;
+            --shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+        }
 
-  {% if error %}
-  <p style="color:red;">{{ error }}</p>
-  {% endif %}
+        * {
+            box-sizing: border-box;
+        }
 
-  <form method="POST" enctype="multipart/form-data" id="upload-report-form">
-      {% csrf_token %}
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
 
-      <label>Report Type:</label>
-      <select name="report_type" required>
-          <option value="xray">X-Ray</option>
-          <option value="blood_test">Blood Test</option>
-          <option value="scan">Scan</option>
-          <option value="other">Other</option>
-      </select>
+        .page {
+            width: min(720px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 40px 0 48px;
+        }
 
-      <br><br>
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 18px;
+        }
 
-      <label>Title:</label>
-      <input type="text" name="title" required>
+        .title-group h1 {
+            margin: 0;
+            font-size: 26px;
+            line-height: 1.2;
+        }
 
-      <br><br>
+        .title-group p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
 
-      <label>File:</label>
-      <input type="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.bmp,.tiff,.tif" required>
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+        }
 
-      <br><br>
+        .form-group {
+            margin-bottom: 20px;
+        }
 
-      <button type="submit" id="upload-submit-btn">Upload Report</button>
-  </form>
+        .form-label {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
 
-  <!-- NEW: loading indicator, hidden by default -->
-  <div id="upload-loading" style="display:none; margin-top:14px; padding:12px; background:#eef5ff; border:1px solid #b8d4f5; border-radius:6px; color:#1f5fbf; font-weight:600;">
-      ⏳ Uploading and analyzing report... this may take a few seconds. Please don't close or refresh this page.
-  </div>
-  <!-- END NEW -->
+        .form-control {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 15px;
+            background: #fff;
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 44px;
+        }
 
-  <br>
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(31, 95, 191, 0.12);
+            outline: none;
+        }
 
-  <a href="/doctor-dashboard/" id="back-link">Back</a>
+        input[type="file"].form-control {
+            padding: 9px 12px;
+            background: var(--surface);
+            cursor: pointer;
+        }
 
-  <!-- NEW: script to show loading state on submit -->
-  <script>
-      document.getElementById('upload-report-form').addEventListener('submit', function () {
-          document.getElementById('upload-submit-btn').disabled = true;
-          document.getElementById('upload-submit-btn').textContent = 'Uploading...';
-          document.getElementById('upload-loading').style.display = 'block';
-      });
-  </script>
-  <!-- END NEW -->
+        .actions-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            align-items: center;
+        }
+
+        .button,
+        button.button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 10px 18px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1;
+            text-decoration: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .button:hover,
+        button.button:hover {
+            background: var(--primary-dark);
+        }
+
+        .button.secondary {
+            background: #fff;
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .button.secondary:hover {
+            background: #f9fafb;
+        }
+
+        .error-state {
+            margin-bottom: 20px;
+            border: 1px solid #fed7aa;
+            background: var(--warning-bg);
+            color: var(--warning);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 14px;
+        }
+
+        .loading-state {
+            display: none;
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: #eef5ff;
+            border: 1px solid #b8d4f5;
+            border-radius: 6px;
+            color: #1f5fbf;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .page {
+                width: min(100% - 24px, 720px);
+                padding: 20px 0;
+            }
+            .actions-row {
+                flex-direction: column-reverse;
+                width: 100%;
+            }
+            .button, button.button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<main class="page">
+    <header class="topbar">
+        <div class="title-group">
+            <h1>Upload Report for {{ patient.name }}</h1>
+            <p>Add medical imaging, test results, or diagnostic reports.</p>
+        </div>
+        <a class="button secondary" href="{% url 'doctor_dashboard' %}" id="back-link">Back to Dashboard</a>
+    </header>
+
+    {% if error %}
+        <div class="error-state">
+            {{ error }}
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <form method="POST" enctype="multipart/form-data" id="upload-report-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="report_type">Report Type</label>
+                <select class="form-control" id="report_type" name="report_type" required>
+                    <option value="" disabled selected>Select report type...</option>
+                    <option value="xray">X-Ray</option>
+                    <option value="blood_test">Blood Test</option>
+                    <option value="scan">Scan</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="title">Report Title</label>
+                <input class="form-control" type="text" id="title" name="title" placeholder="e.g. Chest X-Ray Routine Check" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="file">Select File</label>
+                <input class="form-control" type="file" id="file" name="file" accept=".pdf,.jpg,.jpeg,.png,.bmp,.tiff,.tif" required>
+            </div>
+
+            <div class="actions-row">
+                <button class="button" type="submit" id="upload-submit-btn">Upload Report</button>
+                <a class="button secondary" href="{% url 'doctor_dashboard' %}">Cancel</a>
+            </div>
+        </form>
+
+        <div class="loading-state" id="upload-loading">
+            ⏳ Uploading and analyzing report... this may take a few seconds. Please don't close or refresh this page.
+        </div>
+    </div>
+</main>
+
+<script>
+    const uploadForm = document.getElementById('upload-report-form');
+    const submitBtn = document.getElementById('upload-submit-btn');
+    const loadingDiv = document.getElementById('upload-loading');
+
+    uploadForm.addEventListener('submit', function () {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Uploading...';
+        loadingDiv.style.display = 'block';
+    });
+</script>
+
+</body>
+</html>
