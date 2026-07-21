@@ -516,7 +516,13 @@ document.getElementById("recordBtn").addEventListener("click", () => {
     if (!SpeechRecognition) return;
     const recognition = new SpeechRecognition();
     recognition.lang = "en-IN";
-    recognition.onresult = (e) => { messageText.value = e.results[0][0].transcript; };
+    recognition.onresult = (e) => {
+    const newTranscript = e.results[0][0].transcript;
+    const existingText = messageText.value.trim();
+    
+    // Appends the new text, adding a space if there is already text present
+    messageText.value = existingText ? existingText + " " + newTranscript : newTranscript;
+};
     recognition.start();
 });
 
