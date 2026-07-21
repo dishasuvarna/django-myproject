@@ -108,7 +108,46 @@
             filter: blur(8px);
             pointer-events: none; 
             transition: filter 0.3s ease;
+        }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            text-align: center;
+        }
+        .modal-card h3 {
+            margin-top: 0;
+            color: #b91c1c;
+        }
+        .modal-card p {
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.5;
+     }
+       .modal-card button {
+            background: #b91c1c;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 10px;
 }
+
+        
     /* #locationStatus a {
         display: inline-block;
         padding: 5px 10px;
@@ -183,6 +222,14 @@
         <button id="sendBtn" type="button">Send Emergency SMS</button>
 
         <div id="response"></div>
+    </div>
+</div>
+
+<div id="alertHintModal" class="modal-overlay">
+    <div class="modal-card">
+        <h3>Action Required</h3>
+        <p>To view the patient's basic details, please click the red <strong>Send Emergency SMS</strong> button at the bottom of the page.</p>
+        <button type="button" onclick="closeHintModal()">Got it</button>
     </div>
 </div>
 
@@ -377,6 +424,10 @@ requestLocation();
 
 
 <script>
+
+function closeHintModal() {
+    document.getElementById("alertHintModal").style.display = "none";
+}
 let latitude = null;
 let longitude = null;
 
