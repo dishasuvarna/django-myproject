@@ -1,32 +1,219 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>{% if prescription %}Edit{% else %}Add{% endif %} Prescription</title>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if prescription %}Edit{% else %}Add{% endif %} Prescription - Doctor Dashboard</title>
+    <style>
+        :root {
+            --bg: #f3f6fa;
+            --card: #ffffff;
+            --text: #1f2937;
+            --muted: #6b7280;
+            --border: #d6dee9;
+            --soft-border: #edf1f6;
+            --primary: #1f5fbf;
+            --primary-dark: #174a95;
+            --success: #0f766e;
+            --warning-bg: #fff7ed;
+            --warning: #9a3412;
+            --surface: #f8fafc;
+            --shadow: 0 10px 26px rgba(15, 23, 42, 0.07);
+        }
 
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .page {
+            width: min(720px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 40px 0 48px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 18px;
+        }
+
+        .title-group h1 {
+            margin: 0;
+            font-size: 26px;
+            line-height: 1.2;
+        }
+
+        .title-group p {
+            margin: 6px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 15px;
+            background: #fff;
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(31, 95, 191, 0.12);
+            outline: none;
+        }
+
+        input[type="date"].form-control {
+            min-height: 44px;
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            align-items: center;
+        }
+
+        .button,
+        button.button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 10px 18px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1;
+            text-decoration: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .button:hover,
+        button.button:hover {
+            background: var(--primary-dark);
+        }
+
+        .button.secondary {
+            background: #fff;
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .button.secondary:hover {
+            background: #f9fafb;
+        }
+
+        .error-state {
+            margin-bottom: 20px;
+            border: 1px solid #fed7aa;
+            background: var(--warning-bg);
+            color: var(--warning);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .page {
+                width: min(100% - 24px, 720px);
+                padding: 20px 0;
+            }
+            .actions-row {
+                flex-direction: column-reverse;
+                width: 100%;
+            }
+            .button, button.button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
 <body>
 
-<h2>{% if prescription %}Edit{% else %}Add{% endif %} Prescription</h2>
+<main class="page">
+    <header class="topbar">
+        <div class="title-group">
+            <h1>{% if prescription %}Edit{% else %}Add{% endif %} Prescription</h1>
+            <p>Record medical treatments and specify instructions.</p>
+        </div>
+        <a class="button secondary" href="javascript:history.back()">Back</a>
+    </header>
 
-{% if error %}
-    <p style="color:red;">{{ error }}</p>
-{% endif %}
+    {% if error %}
+        <div class="error-state">
+            {{ error }}
+        </div>
+    {% endif %}
 
-<form method="POST">
-{% csrf_token %}
-<textarea name="medicines" placeholder="Enter medicines" required>{% if prescription %}{{ prescription.medicines }}{% endif %}</textarea><br>
-<textarea name="notes" placeholder="Enter notes" required>{% if prescription %}{{ prescription.notes }}{% endif %}</textarea><br>
+    <div class="card">
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label class="form-label" for="medicines">Medicines</label>
+                <textarea class="form-control" id="medicines" name="medicines" placeholder="Enter medicine names, dosages, and frequency..." required>{% if prescription %}{{ prescription.medicines }}{% endif %}</textarea>
+            </div>
 
-<label for="active_until">Active Until (optional):</label><br>
-<input
-    type="date"
-    id="active_until"
-    name="active_until"
-    value="{% if prescription %}{{ prescription.active_until|date:'Y-m-d' }}{% endif %}"
-><br><br>
+            <div class="form-group">
+                <label class="form-label" for="notes">Clinical Notes</label>
+                <textarea class="form-control" id="notes" name="notes" placeholder="Enter additional notes or instructions for the patient..." required>{% if prescription %}{{ prescription.notes }}{% endif %}</textarea>
+            </div>
 
-<button type="submit">Save</button>
-</form>
+            <div class="form-group">
+                <label class="form-label" for="active_until">Active Until (Optional)</label>
+                <input class="form-control" type="date" id="active_until" name="active_until" value="{% if prescription %}{{ prescription.active_until|date:'Y-m-d' }}{% endif %}">
+            </div>
+
+            <div class="actions-row">
+                <button class="button" type="submit">Save Prescription</button>
+                <a class="button secondary" href="javascript:history.back()">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
 
 </body>
 </html>
