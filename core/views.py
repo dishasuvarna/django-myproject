@@ -446,14 +446,12 @@ def scan_qr(request):
           "patient_error": error
       })
 
-
 from django.contrib.auth import logout
 from django.shortcuts import redirect
 
 def logout_view(request):
     logout(request)
-    return redirect('doctor_login')
-
+    return redirect('login')
 # -------------------------
 # DOCTOR LOGIN (STRICT)
 # -------------------------
@@ -798,6 +796,12 @@ def get_patient(request, patient_id):
       })
 
 
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def doctor_logout_view(request):
+    logout(request)
+    return redirect('doctor_login')
 
 # -------------------------
 # QR VIEW 

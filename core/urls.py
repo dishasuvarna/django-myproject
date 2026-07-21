@@ -39,6 +39,8 @@ urlpatterns = [
     # 📡 API
     path('get-patient/<str:patient_id>/', get_patient, name='get_patient'),
 
+    path('doctor/logout/', doctor_logout_view, name='doctor_logout'),
+
 
     #otp
     path('verify-register-otp/', views.verify_register_otp, name='verify_register_otp'),
