@@ -161,7 +161,8 @@ def register(request):
             return render(request, 'register.html', {
                 'otp_sent': True,
                 'username': username,
-                'phone': phone
+                'phone': phone,
+                'password': password
             })
 
         # 🔹 STEP 2: VERIFY OTP + CREATE USER
