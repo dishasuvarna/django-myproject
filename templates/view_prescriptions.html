@@ -398,7 +398,7 @@
             <h1>Prescriptions for {{ patient.name }}</h1>
             <p class="muted">Review prescriptions and medical documents linked to this patient record.</p>
         </div>
-        <a class="button secondary" href="{% url 'doctor_dashboard' %}">Back to Dashboard</a>
+        <a class="button secondary" href="{% url 'doctor_dashboard' %}?search={{ patient.patient_id }}">Back to Dashboard</a>
     </header>
 
     <section class="patient-summary" aria-label="Patient summary">
