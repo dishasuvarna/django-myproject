@@ -507,13 +507,12 @@ def doctor_dashboard(request):
 @login_required(login_url='doctor_login')
 def doctor_edit_patient(request, patient_id):
 
-    # 🔒 Ensure only doctor
+    # Ensure only doctor
     profile = Profile.objects.get(user=request.user)
     if profile.role != 'doctor':
         return redirect('doctor_login')
 
     patient = Patient.objects.filter(patient_id=patient_id).first()
-    
 
     if not patient:
         return redirect('doctor_dashboard')
@@ -526,18 +525,16 @@ def doctor_edit_patient(request, patient_id):
         patient.blood_group = request.POST.get('blood_group') or patient.blood_group
         patient.allergies = request.POST.get('allergies') or patient.allergies
         patient.emergency_contact = request.POST.get('emergency_contact') or patient.emergency_contact
-        patient.is_pregnant = request.POST.get('is_pregnant') == 'on'
 
         # patient.phone = NEVER CHANGE
 
         patient.save()
 
-        return redirect('doctor_dashboard')
+        # return redirect('doctor_dashboard')
 
     return render(request, 'doctor_edit.html', {
         'patient': patient
     })
-
 # -------------------------
 # ADD PRESCRIPTION
 # -------------------------
