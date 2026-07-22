@@ -60,18 +60,7 @@ class Patient(models.Model):
 
     def save(self, *args, **kwargs):
         import json
-
-        # Prepare QR data BEFORE saving
-        # qr_data = {
-        #     "id": self.patient_id,
-        #     "name": self.name,
-        #     "blood_group": self.blood_group,
-        #     "allergies": self.allergies,
-        #     "emergency_contact": self.emergency_contact
-        # }
-
-        # qr_string = json.dumps(qr_data)
-
+        
         site_url = "http://192.168.1.5:8000"
         qr_string = f"{site_url}/scan/?patient_id={self.patient_id}"
 

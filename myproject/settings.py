@@ -1,41 +1,9 @@
-# from pathlib import Path
-# import os
-
-
-# BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# def _load_env_file(env_path):
-#     if not env_path.exists():
-#         return
-
-#     for raw_line in env_path.read_text(encoding="utf-8").splitlines():
-#         line = raw_line.strip()
-#         if not line or line.startswith("#") or "=" not in line:
-#             continue
-
-#         key, value = line.split("=", 1)
-#         key = key.strip()
-#         value = value.strip().strip('"').strip("'")
-
-#         if key and key not in os.environ:
-#             os.environ[key] = value
-
-
-# _load_env_file(BASE_DIR / ".env")
-
-# TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
-# TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-# TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
-
 import os
 from pathlib import Path
-# from dotenv import load_dotenv
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# load_dotenv(dotenv_path=BASE_DIR / ".env")
 def load_env_file():
     env_file = BASE_DIR / ".env"
 
@@ -45,7 +13,6 @@ def load_env_file():
     for line in env_file.read_text().splitlines():
         line = line.strip()
 
-        # Corrected: combined the condition into one line or use parentheses
         if not line or line.startswith("#") or "=" not in line:
             continue
 
@@ -57,9 +24,6 @@ load_env_file()
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
-# TWILIO_MESSAGING_SERVICE_SID = os.getenv("TWILIO_MESSAGING_SERVICE_SID")
-
-# SECRET_KEY = os.getenv("SECRET_KEY")
 
 
 SECRET_KEY = 'django-insecure-xxxx'  
@@ -84,7 +48,7 @@ INSTALLED_APPS = [
      #drf_added
      'emergency',
 
-    'core',   # ✅ your app
+    'core',   # my app
 ]
 
 
@@ -180,7 +144,7 @@ STATIC_URL = '/static/'
 
 
 # -------------------------------
-# ✅ MEDIA FILES (VERY IMPORTANT FOR QR CODE)
+# MEDIA FILES (VERY IMPORTANT FOR QR CODE)
 # -------------------------------
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

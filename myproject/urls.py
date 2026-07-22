@@ -6,8 +6,6 @@ from django.conf.urls.static import static
 
 
 def home(request):
-    # If already logged in, skip the landing page and go straight to
-    # the correct dashboard based on role.
     if request.user.is_authenticated:
         try:
             from core.models import Profile
@@ -32,5 +30,5 @@ urlpatterns = [
     path('', include('core.urls')),
 ]
 
-# MEDIA FILES (QR IMAGE FIX)
+# MEDIA FILES 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -11,14 +11,3 @@ urlpatterns = [
       path('verify/', views.verify_emergency_code_page, name='verify_page'),
       path('verify-code/', views.verify_emergency_code, name='verify_emergency_code'),
   ]
-
-# from django.urls import path
-# from . import views
-
-# urlpatterns = [
-#     path('scan-qr/', views.scan_qr, name='scan_qr'),
-#     path('alert/<str:patient_id>/', views.emergency_alert, name='emergency_alert'),
-#     path('save-location/', views.save_location, name='save_location'),
-#     path('reverse-location/', views.reverse_location, name='reverse_location'),
-#     path('scan/', views.scan_qr_page, name='scan_qr_page'),
-# ]

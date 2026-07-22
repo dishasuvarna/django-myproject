@@ -64,9 +64,8 @@
     <form method="POST">
           {% csrf_token %}
         <input type="number" name="age" value="{{ form.age }}" placeholder="Age" required>
-        <!input type="number" name="age"!>
 
-        <!-- ✅ Gender Dropdown Added -->
+        //Gender Dropdown Added
         <select name="gender" required>
     <option value="">Select Gender</option>
     <option {% if form.gender == "Male" %}selected{% endif %}>Male</option>
@@ -74,7 +73,6 @@
     <option {% if form.gender == "Other" %}selected{% endif %}>Other</option>
 </select>
 
-        <!-- <input type="tel" name="phone" placeholder="Phone Number" required> -->
 
         <label>Phone Number:</label>
         <input type="text" value="{{ phone }}" readonly style="pointer-events: none;">
@@ -100,7 +98,7 @@
 </script>
 
 
-<!---drf_added-->
+//drf Added
 <script>
 //GET LOCATION
 navigator.geolocation.getCurrentPosition((pos) => {
@@ -108,7 +106,7 @@ navigator.geolocation.getCurrentPosition((pos) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-CSRFToken': '{{ csrf_token }}'   // ✅ IMPORTANT
+      'X-CSRFToken': '{{ csrf_token }}'   
     },
     body: JSON.stringify({
       lat: pos.coords.latitude,
@@ -205,18 +203,6 @@ function sendQR() {
   });
 }
 </script>
-<!-- <script>
-function sendQR() {
-  fetch('/emergency/scan-qr/', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name: "{{ patient.name }}",
-      phone: "{{ patient.emergency_contact }}"
-    })
-  });
-}
-</script> -->
 
 <script>
 function sendQR() {

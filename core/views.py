@@ -25,19 +25,6 @@ def send_otp(phone, otp):
         print("Error sending OTP:", e)
 
 
-
-
-
-# # fast2sms
-# import requests
-
-
-
-
-
-
-
-
 from urllib import request
 
 from django.shortcuts import render, redirect,get_object_or_404
@@ -52,23 +39,6 @@ import re
 
 from .models import Patient, Doctor, Profile, Prescription, MedicalReport
 from .services import MedicalService
-
-
-def pregnancy_start_date_from_month(month):
-    try:
-        month = int(month)
-    except (TypeError, ValueError):
-        month = 1
-
-    month = max(1, min(month, 10))
-    today = timezone.localdate()
-    total_months = today.year * 12 + today.month - (month - 1)
-    year = (total_months - 1) // 12
-    calendar_month = (total_months - 1) % 12 + 1
-    day = min(today.day, 28)
-
-    return date(year, calendar_month, day)
-
 
 def report_preview_kind(report):
     file_name = report.file.name.lower()
@@ -129,7 +99,7 @@ def register(request):
         phone = request.POST.get('phone')
         entered_otp = request.POST.get('otp')
 
-        # ✅ common validations
+        # common validations
         if not username or not password or not phone:
             return render(request, 'register.html', {'error': 'Fill all fields first'})
 
@@ -142,7 +112,7 @@ def register(request):
         if User.objects.filter(username=username).exists():
             return render(request, 'register.html', {'error': 'User exists'})
 
-        # 🔹 STEP 1: SEND OTP
+        # STEP 1: SEND OTP
         if action == "send_otp":
 
             otp = generate_otp()
@@ -165,7 +135,7 @@ def register(request):
                 'password': password
             })
 
-        # 🔹 STEP 2: VERIFY OTP + CREATE USER
+        # STEP 2: VERIFY OTP + CREATE USER
         elif action == "verify_otp":
 
             data = request.session.get('reg_data')
@@ -198,14 +168,6 @@ def register(request):
                 profile.save()
 
                 del request.session['reg_data']
-
-                # #code_new
-                # import random
-
-                # patient = form.save(commit=False)
-                # patient.patient_code = f"{patient.patient_id}-{random.randint(100000, 999999)}"
-                # patient.save()
-                # del request.session['reg_data']
 
                 return redirect('login')
 
@@ -281,13 +243,13 @@ def login_view(request):
 
 
 # -------------------------
-# PATIENT FORM → QR ONLY
+# PATIENT FORM 
 # -------------------------
 @login_required
 def patient_form(request):
     profile = request.user.profile
 
-    # ❌ Block doctor access
+    # Block doctor access
     if profile.role == 'doctor':
         return redirect('doctor_dashboard')
 
@@ -536,6 +498,7 @@ def doctor_dashboard(request):
           'search': search,
           'prescriptions': prescriptions,
           'report_items': report_items,
+          'profile': profile,
       })
 
 # -------------------------
@@ -550,10 +513,6 @@ def doctor_edit_patient(request, patient_id):
         return redirect('doctor_login')
 
     patient = Patient.objects.filter(patient_id=patient_id).first()
-    # ✅ ADD DEBUG HERE (INSIDE FUNCTION)
-    # print("PATIENT OBJECT:", patient)
-    # if patient:
-    #     print("PATIENT DATA:", patient.__dict__)
     
 
     if not patient:
@@ -561,7 +520,7 @@ def doctor_edit_patient(request, patient_id):
 
     if request.method == "POST":
 
-        # ✅ UPDATE ONLY ALLOWED FIELDS
+        # UPDATE ONLY ALLOWED FIELDS
         patient.age = request.POST.get('age') or patient.age
         patient.gender = request.POST.get('gender') or patient.gender
         patient.blood_group = request.POST.get('blood_group') or patient.blood_group
@@ -569,9 +528,7 @@ def doctor_edit_patient(request, patient_id):
         patient.emergency_contact = request.POST.get('emergency_contact') or patient.emergency_contact
         patient.is_pregnant = request.POST.get('is_pregnant') == 'on'
 
-        
-        # ❗ DO NOT TOUCH PHONE
-        # patient.phone = ❌ NEVER CHANGE
+        # patient.phone = NEVER CHANGE
 
         patient.save()
 
@@ -598,13 +555,6 @@ def add_prescription(request, patient_id):
         doctor = Doctor.objects.get(user=request.user)
     except Doctor.DoesNotExist:
          return HttpResponse("Doctor profile not created")
-    
-
-    #add prescriptions error
-    # try:
-    #     patient = Patient.objects.get(id=patient_id)   # ✅ FIXED
-    # except Patient.DoesNotExist:
-    #     return HttpResponse("Patient not found")
 
     patient = get_object_or_404(Patient, patient_id=patient_id)
 
@@ -662,26 +612,6 @@ def edit_prescription(request, prescription_id):
         'prescription': prescription
     })
 
-#View prescriptions for a patient
-
-
-# @login_required(login_url='doctor_login')
-# def view_prescriptions(request, patient_id):
-
-#     profile = Profile.objects.get(user=request.user)
-#     if profile.role != 'doctor':
-#         return redirect('doctor_login')
-
-#     patient = Patient.objects.get(patient_id=patient_id)
-#     prescriptions = Prescription.objects.filter(patient=patient)
-
-#     return render(request, 'view_prescriptions.html', {
-#         'patient': patient,
-#         'prescriptions': prescriptions
-#     })
-
-
-
 @login_required
 def my_prescriptions(request):
     profile = Profile.objects.get(user=request.user)
@@ -703,8 +633,8 @@ def my_prescriptions(request):
         'report_items': reports_with_preview(reports)
     })
 
-#medical_report
 
+#medical_report
 @login_required(login_url='doctor_login')
 def upload_report(request, patient_id):
     profile = Profile.objects.get(user=request.user)
@@ -745,7 +675,6 @@ def upload_report(request, patient_id):
           except Exception as e:
               from core.utils.log_scrubber import scrub_for_log
               print("EXTRACTION ERROR:", scrub_for_log(e))
-            #   print(f"DEBUG: Error caught: {scrub_for_log(e)}", flush=True)
 
          
 
@@ -764,8 +693,8 @@ def upload_report(request, patient_id):
 
 from core.utils.pdf_processor import extract_text_from_pdf
 
-# view-prescriptions for doctor
 
+# view-prescriptions for doctor
 @login_required(login_url='doctor_login')
 def view_prescriptions(request, patient_id):
 
@@ -787,7 +716,7 @@ def view_prescriptions(request, patient_id):
         'report_items': reports_with_preview(reports)
     })
 # -------------------------
-# QR FETCH (API)
+# QR FETCH
 # -------------------------
 @login_required(login_url='doctor_login')
 def get_patient(request, patient_id):
@@ -825,7 +754,7 @@ def qr_page(request):
     patient = Patient.objects.filter(user=request.user).first()
 
     if not patient:
-        return redirect('patient_form')  # safety
+        return redirect('patient_form')  
 
     return render(request, 'qr_page.html', {
         'qr': patient.qr_code.url,
