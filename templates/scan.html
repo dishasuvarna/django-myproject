@@ -428,8 +428,10 @@ requestLocation();
 function closeHintModal() {
     document.getElementById("alertHintModal").style.display = "none";
 }
+
 let latitude = null;
 let longitude = null;
+let locationResolved = false;
 
 const serverPatientId = "{{ patient.patient_id|default:patient_id|default:''|escapejs }}";
 const sendBtn = document.getElementById("sendBtn");
@@ -437,34 +439,54 @@ const locationStatus = document.getElementById("locationStatus");
 const responseBox = document.getElementById("response");
 const messageText = document.getElementById("messageText");
 
-// CHANGED: Initialize button as enabled so it works immediately
-sendBtn.disabled = false; 
+sendBtn.disabled = true;
+locationStatus.innerText = "Locking your location, please wait...";
 
 function requestLocation() {
     if (!navigator.geolocation) {
-        locationStatus.innerText = "Location not supported by browser.";
+        locationStatus.innerText = "⚠️ Location not supported. You can still send without location.";
+        sendBtn.disabled = false;
         return;
     }
-    locationStatus.innerText = "Locking exact GPS position...";
-    
+
+    const timeoutId = setTimeout(() => {
+        if (!locationResolved) {
+            locationResolved = true;
+            locationStatus.innerText = "⚠️ Location taking too long (network issue?). You can still send without location.";
+            sendBtn.disabled = false;
+        }
+    }, 5000);
+
     navigator.geolocation.getCurrentPosition(
         (position) => {
+            if (locationResolved) return;
+            locationResolved = true;
+            clearTimeout(timeoutId);
             latitude = position.coords.latitude;
             longitude = position.coords.longitude;
-            locationStatus.innerText = "Location Locked: Precise";
-            // We don't enable the button here because it's already enabled
+            locationStatus.innerText = `Location Locked (accuracy: ${Math.round(position.coords.accuracy)}m)`;
+            sendBtn.disabled = false;
         },
         (error) => {
-            locationStatus.innerText = "Location access denied.";
+            if (locationResolved) return;
+            locationResolved = true;
+            clearTimeout(timeoutId);
+
+            if (error.code === error.PERMISSION_DENIED) {
+                locationStatus.innerText = "Location access denied. Cannot send alert without location.";
+                sendBtn.disabled = true;
+            } else {
+                locationStatus.innerText = "⚠️ Could not fetch location (network issue?). You can still send without location.";
+                sendBtn.disabled = false;
+            }
         },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
 }
 
 async function sendEmergencyAlert() {
     const patientId = serverPatientId || new URLSearchParams(window.location.search).get("patient_id");
-    
-    // CHANGED: Removed the check that forced latitude and longitude to exist
+
     if (!patientId) {
         alert("Patient ID missing.");
         return;
@@ -473,26 +495,23 @@ async function sendEmergencyAlert() {
     sendBtn.disabled = true;
     responseBox.innerText = "Sending emergency signal...";
 
-    // This stays exactly as it was in your original code
-    const mapLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-
     const payload = {
         message: messageText.value.trim() || "Emergency! Assistance required.",
         latitude: latitude,
         longitude: longitude,
-        location: "Coordinates provided" 
+        location: "Coordinates provided"
     };
 
     try {
         const response = await fetch(`/emergency/alert/${encodeURIComponent(patientId)}/`, {
             method: "POST",
-            headers: { 
-                "Content-Type": "application/json", 
-                "X-CSRFToken": "{{ csrf_token }}" 
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
             },
             body: JSON.stringify(payload)
         });
-        
+
         if (response.ok) {
             responseBox.style.color = "green";
             responseBox.innerText = "Emergency SMS sent successfully!";
@@ -500,7 +519,7 @@ async function sendEmergencyAlert() {
             document.getElementById("patient-container").classList.remove("blur-content");
             document.getElementById("patient-container").style.pointerEvents = "auto";
 
-            
+            document.getElementById("recordBtn").disabled = true;
         } else {
             throw new Error("Server error");
         }
@@ -517,12 +536,10 @@ document.getElementById("recordBtn").addEventListener("click", () => {
     const recognition = new SpeechRecognition();
     recognition.lang = "en-IN";
     recognition.onresult = (e) => {
-    const newTranscript = e.results[0][0].transcript;
-    const existingText = messageText.value.trim();
-    
-    // Appends the new text, adding a space if there is already text present
-    messageText.value = existingText ? existingText + " " + newTranscript : newTranscript;
-};
+        const newTranscript = e.results[0][0].transcript;
+        const existingText = messageText.value.trim();
+        messageText.value = existingText ? existingText + " " + newTranscript : newTranscript;
+    };
     recognition.start();
 });
 
