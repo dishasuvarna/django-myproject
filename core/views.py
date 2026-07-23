@@ -8,8 +8,6 @@ auth_token = ""
 twilio_number = ""
 
 
-
-
 client = Client(account_sid, auth_token)
 
 

@@ -94,12 +94,14 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 # -------------------------------
 # DATABASE (MYSQL)
 # -------------------------------
+load_env_file()
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'hospital_db',
         'USER': 'root',
-        'PASSWORD': '*****@suvarna',
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': 'localhost',
         'PORT': '3306',
     }
