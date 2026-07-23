@@ -146,3 +146,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'patient_form'
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://django-myproject-production.up.railway.app',
+]
