@@ -51,5 +51,13 @@ TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
 
+# Ignore generated static files
+staticfiles/
+
+# Ignore test media and local documents
+core/test_images/
+core/DISHA G Certificate.pdf
+
+
 
 
