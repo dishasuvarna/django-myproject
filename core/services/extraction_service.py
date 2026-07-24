@@ -38,7 +38,10 @@ class ExtractionService:
                 ExtractionService._apply_image_result(report, result)
             else:
                 report.extraction_status = 'unsupported'
-        except Exception:
+        #except Exception:
+            #report.extraction_status = 'error'
+        except Exception as e:
+            print("EXTRACTION PROCESSING ERROR:", scrub_for_log(e))
             report.extraction_status = 'error'
 
         if report.extraction_status in ('success', 'low_confidence'):
