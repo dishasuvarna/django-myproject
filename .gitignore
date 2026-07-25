@@ -39,7 +39,7 @@ test_images/  # (Optional: ignore if these are large or private)
 *.sql.gz
 
 # Local database storage
-mysql_data/
+#mysql_data/
 
 
 

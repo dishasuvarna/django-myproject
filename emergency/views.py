@@ -1,5 +1,6 @@
 import json
 
+from .sms_service import send_emergency_sms_async
 import traceback
 import requests
 from datetime import datetime
@@ -79,6 +80,7 @@ def emergency_alert(request, patient_id):
         message_parts.append(f"Google Maps:\n{map_link}")
     else:
         message_parts.append("\nEmergency Detected At:\nLocation not shared by the responder.")
+        location_readable = location_readable if lat and lon else "Not shared"
 
     if note:
         message_parts.append(f"\nResponder's Note:\n{note}")
@@ -89,6 +91,20 @@ def emergency_alert(request, patient_id):
 
     # print(f"\n--- FINAL DYNAMIC SMS CONTENT ---\n{message_body}\n--------------------------\n")
     print(f"\n{message_body}\n")
+    
+    send_emergency_sms_async(
+        patient_name=patient.name,
+        emergency_contact=patient.phone,
+        location=location_readable if lat and lon else "Not shared",
+        message_body=message_body,
+        )
+
+    # send_emergency_sms_async(
+    #     patient_name=patient.name,
+    #     emergency_contact=patient.emergency_contact,
+    #     location=location_readable,
+    #     message_body=message_body,
+    # )
 
     return JsonResponse({"status": "sent", "message": "Alert processed"})
 
