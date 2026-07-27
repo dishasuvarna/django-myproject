@@ -1,11 +1,11 @@
 # otp_new
 import profile
-
 from twilio.rest import Client
+import os
 
-account_sid = "" 
-auth_token = ""
-twilio_number = ""
+account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+twilio_number = os.getenv("TWILIO_PHONE_NUMBER")
 
 
 
