@@ -402,6 +402,43 @@ def patient_form(request):
 
 
 # @login_required
+# def scan_qr(request):
+#       from urllib.parse import parse_qs, urlparse
+
+#       raw_patient_id = (
+#           request.GET.get("patient_id") or
+#           request.GET.get("id") or
+#           request.GET.get("patient") or
+#           ""
+#       )
+#       patient_id = raw_patient_id.strip()
+
+#       if "?" in patient_id:
+#           parsed_query = parse_qs(urlparse(patient_id).query)
+#           patient_id = (
+#               parsed_query.get("patient_id", [""])[0] or
+#               parsed_query.get("id", [""])[0] or
+#               patient_id
+#           )
+
+#       patient_id = patient_id.strip().strip("/")
+#       patient = None
+#       error = ""
+
+#       if patient_id:
+#           patient = Patient.objects.filter(patient_id__iexact=patient_id).first()
+#           if patient:
+#               patient_id = patient.patient_id
+#           if not patient:
+#               error = "Patient details not found"
+
+#       return render(request, 'scan.html', {
+#           "patient_id": patient_id,
+#           "patient": patient,
+#           "patient_error": error
+#       })
+
+
 def scan_qr(request):
       from urllib.parse import parse_qs, urlparse
 
@@ -423,19 +460,21 @@ def scan_qr(request):
 
       patient_id = patient_id.strip().strip("/")
       patient = None
-      error = ""
 
       if patient_id:
           patient = Patient.objects.filter(patient_id__iexact=patient_id).first()
           if patient:
               patient_id = patient.patient_id
-          if not patient:
-              error = "Patient details not found"
+
+      # NEW: if a patient_id was provided but no matching patient exists,
+      # show the demo notice instead of scan.html with an error
+      if patient_id and not patient:
+          return render(request, 'demo_notice.html')
 
       return render(request, 'scan.html', {
           "patient_id": patient_id,
           "patient": patient,
-          "patient_error": error
+          "patient_error": ""
       })
 
 from django.contrib.auth import logout
