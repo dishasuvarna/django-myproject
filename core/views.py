@@ -11,7 +11,19 @@ twilio_number = ""
 
 client = Client(account_sid, auth_token)
 
-
+def is_twilio_verified_number(phone):
+    """
+    Checks if a phone number is in Twilio's verified caller ID list
+    (required for trial accounts to send SMS). Returns True/False.
+    Fails safe (returns False) if the check itself errors out.
+    """
+    try:
+        normalized = "+91" + phone if not phone.startswith("+") else phone
+        verified_numbers = client.outgoing_caller_ids.list(phone_number=normalized)
+        return len(verified_numbers) > 0
+    except Exception as e:
+        print("Twilio verification check failed:", e)
+        return False
 def send_otp(phone, otp):
     try:
         client.messages.create(
@@ -113,6 +125,12 @@ def register(request):
 
         # STEP 1: SEND OTP
         if action == "send_otp":
+
+            # NEW: check Twilio verification BEFORE generating/printing anything
+            if not is_twilio_verified_number(phone):
+                return render(request, 'register.html', {
+                    'error': 'This number is not verified by the Twilio trial account.',
+                })
 
             otp = generate_otp()
 
