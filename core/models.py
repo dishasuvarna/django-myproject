@@ -59,9 +59,11 @@ class Patient(models.Model):
     patient_code = models.CharField(max_length=15, unique=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
+        import os
         import json
         
-        site_url = "http://192.168.1.5:8000"
+        # site_url = "http://192.168.1.5:8000"
+        site_url = os.environ.get('SITE_URL', 'http://192.168.1.5:8000')
         qr_string = f"{site_url}/scan/?patient_id={self.patient_id}"
 
         # Generate QR
