@@ -155,6 +155,13 @@
             font-weight: 600;
             font-size: 14px;
         }
+        .blur-sensitive {
+    color: transparent !important;
+    text-shadow: 0 0 7px var(--text, #1f2937); /* Blurs only the text glyphs */
+    background-color: #ffffff !important;      /* Forces background to match standard inputs */
+    user-select: none;
+    -webkit-user-select: none;
+}
     </style>
 </head>
 <body>
@@ -200,12 +207,12 @@
 
             <div class="form-group">
                 <label class="form-label" for="emergency_contact">Emergency Contact</label>
-                <input class="form-control" type="text" id="emergency_contact" name="emergency_contact" value="{{ patient.emergency_contact }}" required>
+                <input class="form-control blur-sensitive" type="text" id="emergency_contact" name="emergency_contact" value="{{ patient.emergency_contact }}" required>
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="phone">Phone (Read-only)</label>
-                <input class="form-control" type="text" id="phone" value="{{ patient.phone }}" readonly style="background: var(--surface); color: var(--muted); cursor: not-allowed;">
+                <input class="form-control blur-sensitive" type="text" id="phone" value="{{ patient.phone }}" readonly style="background: var(--surface); color: var(--muted); cursor: not-allowed; pointer-events: none;">
             </div>
 
             <div class="actions-row">

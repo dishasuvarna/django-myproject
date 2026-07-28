@@ -52,6 +52,11 @@
             text-align: center;
             margin-top: 10px;
         }
+        .blur-sensitive {
+          filter: blur(6px);
+          user-select: none; /* Prevents selecting and copying text while blurred */
+          transition: filter 0.2s ease;
+        }
     </style>
 </head>
 
@@ -74,14 +79,14 @@
 
 
         <label>Phone Number:</label>
-        <input type="text" value="{{ phone }}" readonly style="pointer-events: none;">
+        <input type="text" value="{{ phone }}" class="blur-sensitive" readonly style="pointer-events: none;">
         <input type="text" name="blood_group" value="{{ form.blood_group }}" placeholder="Blood Group">
         <input type="text" name="allergies" value="{{ form.allergies }}" placeholder="Allergies (if any)">
-        <input type="tel" name="emergency_contact" value="{{ form.emergency_contact }}" placeholder="Emergency Contact">
+        <input type="password" name="emergency_contact" value="{{ form.emergency_contact }}" placeholder="Emergency Contact">
 
         <button type="submit" name="action" value="send_otp">Send OTP</button>
         {% if otp_sent %}
-    <input type="text" name="otp" placeholder="Enter OTP" required>
+    <input type="password" name="otp" placeholder="Enter OTP" required>
         {% endif %}
 
 

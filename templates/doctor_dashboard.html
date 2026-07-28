@@ -272,6 +272,12 @@
             display: block;
         }
 
+        .blur-sensitive {
+            filter: blur(6px);
+            display: inline-block;
+            user-select: none;
+        }
+
         @media (max-width: 760px) {
             .page {
                 width: min(100% - 24px, 1120px);
@@ -377,11 +383,11 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Phone</span>
-                        <span class="detail-value">{{ patient.phone }}</span>
+                        <span class="detail-value blur-sensitive">{{ patient.phone }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Emergency Contact</span>
-                        <span class="detail-value">{{ patient.emergency_contact }}</span>
+                        <span class="detail-value blur-sensitive">{{ patient.emergency_contact }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Allergies</span>
@@ -438,9 +444,11 @@
     const searchForm = document.getElementById('patient-search-form');
     const searchCard = document.getElementById('search-card');
 
-    searchForm.addEventListener('submit', function () {
-        searchCard.classList.add('is-loading');
-    });
+    if (searchForm) {
+        searchForm.addEventListener('submit', function () {
+            searchCard.classList.add('is-loading');
+        });
+    }
 </script>
 </body>
 </html>

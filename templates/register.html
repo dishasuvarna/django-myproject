@@ -90,14 +90,14 @@
                 </svg>
             </span>
         </div>
-    <input type="text" name="phone" placeholder="Phone" required value="{{ phone }}">
+    <input type="password" name="phone" placeholder="Phone" required value="{{ phone }}">
 
     <!-- SEND OTP -->
     <button type="submit" name="action" value="send_otp">Send OTP</button>
 
     <!-- SHOW AFTER OTP -->
     {% if otp_sent %}
-        <input type="text" name="otp" placeholder="Enter OTP" required>
+        <input type="password" name="otp" placeholder="Enter OTP" required>
         <button type="submit" name="action" value="verify_otp">Register</button>
     {% endif %}
 
