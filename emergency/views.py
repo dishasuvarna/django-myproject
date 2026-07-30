@@ -99,12 +99,12 @@ def emergency_alert(request, patient_id):
         message_body=message_body,
         )
 
-    # send_emergency_sms_async(
-    #     patient_name=patient.name,
-    #     emergency_contact=patient.emergency_contact,
-    #     location=location_readable,
-    #     message_body=message_body,
-    # )
+    send_emergency_sms_async(
+        patient_name=patient.name,
+        emergency_contact=patient.emergency_contact,
+        location=location_readable,
+        message_body=message_body,
+    )
 
     return JsonResponse({"status": "sent", "message": "Alert processed"})
 
