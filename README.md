@@ -1,4 +1,4 @@
-# Smart Emergency Medical QR System
+# VitalScan – Smart Emergency Medical Access System
 
 ## Overview
 
