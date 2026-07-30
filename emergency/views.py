@@ -91,11 +91,12 @@ def emergency_alert(request, patient_id):
 
     # print(f"\n--- FINAL DYNAMIC SMS CONTENT ---\n{message_body}\n--------------------------\n")
     print(f"\n{message_body}\n")
-    
+
+    location_readable = location_readable if lat and lon else "Not shared"
     send_emergency_sms_async(
         patient_name=patient.name,
         emergency_contact=patient.phone,
-        location=location_readable if lat and lon else "Not shared",
+        location=location_readable,
         message_body=message_body,
         )
 
@@ -104,7 +105,7 @@ def emergency_alert(request, patient_id):
         emergency_contact=patient.emergency_contact,
         location=location_readable,
         message_body=message_body,
-    )
+        )
 
     return JsonResponse({"status": "sent", "message": "Alert processed"})
 
